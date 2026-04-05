@@ -148,10 +148,14 @@
 					#address-cells = <1>;
 					#size-cells = <1>;
 
-					mac_addr_0: macaddr@0 {
+					lan_mac_base: macaddr@42 {
 						compatible = "mac-base";
-						reg = <0x4e 0x6>;
+						reg = <0x42 0x6>;
 						#nvmem-cell-cells = <1>;
+					};
+
+					wan_mac: macaddr@48 {
+						reg = <0x48 0x6>;
 					};
 				};
 			};
@@ -180,7 +184,7 @@
 						reg = <0>;
 						label = "port0";
 
-						nvmem-cells = <&mac_addr_0 0>;
+						nvmem-cells = <&wan_mac>;
 						nvmem-cell-names = "mac-address";
 					};
 
@@ -188,7 +192,7 @@
 						reg = <1>;
 						label = "port1";
 
-						nvmem-cells = <&mac_addr_0 1>;
+						nvmem-cells = <&lan_mac_base 2>;
 						nvmem-cell-names = "mac-address";
 					};
 
@@ -196,7 +200,7 @@
 						reg = <2>;
 						label = "port2";
 
-						nvmem-cells = <&mac_addr_0 2>;
+						nvmem-cells = <&lan_mac_base 3>;
 						nvmem-cell-names = "mac-address";
 					};
 
@@ -204,7 +208,7 @@
 						reg = <3>;
 						label = "port3";
 
-						nvmem-cells = <&mac_addr_0 3>;
+						nvmem-cells = <&lan_mac_base 4>;
 						nvmem-cell-names = "mac-address";
 					};
 
@@ -245,7 +249,7 @@
 						reg = <1>;
 						label = "port4";
 
-						nvmem-cells = <&mac_addr_0 4>;
+						nvmem-cells = <&lan_mac_base 5>;
 						nvmem-cell-names = "mac-address";
 					};
 
@@ -253,7 +257,7 @@
 						reg = <2>;
 						label = "port5";
 
-						nvmem-cells = <&mac_addr_0 5>;
+						nvmem-cells = <&lan_mac_base 6>;
 						nvmem-cell-names = "mac-address";
 					};
 
@@ -261,7 +265,7 @@
 						reg = <3>;
 						label = "port6";
 
-						nvmem-cells = <&mac_addr_0 6>;
+						nvmem-cells = <&lan_mac_base 7>;
 						nvmem-cell-names = "mac-address";
 					};
 
@@ -289,6 +293,8 @@
 		enet0: ethernet@24000 {
 			phy-connection-type = "rgmii-id";
 
+			nvmem-cells = <&lan_mac_base 0>;
+			nvmem-cell-names = "mac-address";
 			fixed-link {
 				speed = <1000>;
 				full-duplex;
@@ -302,6 +308,8 @@
 		enet2: ethernet@26000 {
 			phy-connection-type = "rgmii-id";
 
+			nvmem-cells = <&wan_mac>;
+			nvmem-cell-names = "mac-address";
 			fixed-link {
 				speed = <1000>;
 				full-duplex;
