@@ -13,12 +13,21 @@ platform_do_upgrade() {
 	local board=$(board_name)
 
 	case "$board" in
+	watchguard,xtm330)
+		local fwenv="/tmp/fw_env.config.xtm330"
+
+		cat >"$fwenv" <<EOF
+/dev/mtd4 0x0 0x10000 0x10000
+EOF
+
+		FW_ENV_CONFIG="$fwenv" fw_setenv bootcmd 'nand read 2000000 100000 400000;nand read 4000000 80000 80000;bootm 2000000 - 4000000'
+		nand_do_upgrade "$1"
+		;;
 	hpe,msm460|\
 	ocedo,panda|\
 	sophos,red-15w-rev1|\
 	watchguard,firebox-t10|\
-	watchguard,firebox-t15|\
-	watchguard,xtm330)
+	watchguard,firebox-t15)
 		nand_do_upgrade "$1"
 		;;
 	*)
