@@ -100,12 +100,12 @@
 
 				partition@0 {
 					label = "dtb";
-					reg = <0x00000000 0x00020000>;
+					reg = <0x00000000 0x00080000>;
 				};
 
-				partition@20000 {
+				partition@300000 {
 					label = "kernel";
-					reg = <0x00020000 0x00500000>;
+					reg = <0x00100000 0x00400000>;
 				};
 
 				partition@520000 {
