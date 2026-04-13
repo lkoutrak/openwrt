@@ -8,6 +8,7 @@
 /dts-v1/;
 
 /include/ "fsl/p2020si-pre.dtsi"
+/include/ "fsl/p2020si-post.dtsi"
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
