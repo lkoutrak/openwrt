@@ -23,10 +23,9 @@ define Device/watchguard_xtm330
   DEVICE_PACKAGES := kmod-dsa-mv88e6xxx kmod-hwmon-w83793 \
     kmod-rtc-rs5c372a
   BLOCKSIZE := 128k
-  KERNEL = kernel-bin | fit none $(KDIR)/image-$$(DEVICE_DTS).dtb
-  KERNEL_NAME := zImage.la3000000
-  KERNEL_ENTRY := 0x3000000
-  KERNEL_LOADADDR := 0x3000000
+  KERNEL := kernel-bin | lzma | uImage none
+  KERNEL_ENTRY := 0x2000000
+  KERNEL_LOADADDR := 0x2000000
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
