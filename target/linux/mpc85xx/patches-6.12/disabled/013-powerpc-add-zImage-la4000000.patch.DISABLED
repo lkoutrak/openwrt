@@ -1,0 +1,70 @@
+From: tusker
+Date: Mon Apr 13 2026
+Subject: [PATCH] powerpc: add zImage variants for load addresses 0x1000000 and 0x4000000
+
+Add zImage variants for WatchGuard XTM330 boot experiments:
+- la1000000: raw kernel at 0x1000000 (binary mode, fixed-head.S)
+- la4000000: compressed kernel at 0x4000000 (full bootwrapper, pseries-head.S)
+
+---
+ arch/powerpc/boot/Makefile | 8 ++++++++
+ arch/powerpc/boot/wrapper  | 16 ++++++++++++++
+ arch/powerpc/Kconfig       | 8 ++++++++
+ 3 files changed, 32 insertions(+)
+
+--- a/arch/powerpc/boot/Makefile
++++ b/arch/powerpc/boot/Makefile
+@@ -172,6 +172,10 @@ src-plat-$(CONFIG_AMIGAONE) += cuboot-amigaone.c
+ src-plat-$(CONFIG_AMIGAONE) += cuboot-amigaone.c
+ src-plat-$(CONFIG_PPC_PS3) += ps3-head.S ps3-hvcall.S ps3.c
+ src-plat-$(CONFIG_EPAPR_BOOT) += epapr.c epapr-wrapper.c
++src-plat-$(CONFIG_PPC_ZIMAGE_LA1000000) += fixed-head.S
++src-plat-$(CONFIG_PPC_ZIMAGE_LA4000000) += pseries-head.S epapr.c epapr-wrapper.c
+ src-plat-$(CONFIG_PPC_ZIMAGE_LA3000000) += fixed-head.S
+ src-plat-$(CONFIG_PPC_PSERIES) += pseries-head.S
+ src-plat-$(CONFIG_PPC_POWERNV) += pseries-head.S
+@@ -333,6 +337,8 @@ image-$(CONFIG_ASP834x)			+= dtbImage.asp834x-redboot
+ 
+ # Board ports in arch/powerpc/platform/85xx/Kconfig
+ image-$(CONFIG_PPC_ZIMAGE_LA3000000)	+= zImage.la3000000
++image-$(CONFIG_PPC_ZIMAGE_LA1000000)	+= zImage.la1000000
++image-$(CONFIG_PPC_ZIMAGE_LA4000000)	+= zImage.la4000000
+ image-$(CONFIG_MPC85xx_MDS)		+= cuImage.mpc8568mds
+ image-$(CONFIG_MPC85xx_DS)		+= cuImage.mpc8544ds \
+ 					   cuImage.mpc8572ds
+--- a/arch/powerpc/boot/wrapper
++++ b/arch/powerpc/boot/wrapper
+@@ -258,6 +258,22 @@ if [ -n "$esm_blob" -a "$platform" != "pseries" ]; then
+ 
+ case "$platform" in
++la1000000)
++    binary=y
++    platformo="$object/fixed-head.o $object/of.o $object/epapr.o"
++    link_address='0x1000000'
++    ;;
++la4000000)
++    platformo="$object/pseries-head.o $object/epapr.o $object/epapr-wrapper.o"
++    link_address='0x4000000'
++    pie=-pie
++    notext='-z notext'
++    ;;
+ la3000000)
+     binary=y
+     platformo="$object/fixed-head.o $object/of.o $object/epapr.o"
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -88,6 +88,14 @@ config NMI_IPI
+ 	depends on SMP && (DEBUGGER || KEXEC_CORE || HARDLOCKUP_DETECTOR)
+ 	default y
+ 
++config PPC_ZIMAGE_LA1000000
++	bool
++	default n
++
++config PPC_ZIMAGE_LA4000000
++	bool
++	default n
++
+ config PPC_ZIMAGE_LA3000000
+        bool
+        default n
