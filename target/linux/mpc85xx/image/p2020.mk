@@ -21,7 +21,7 @@ define Device/watchguard_xtm330
   DEVICE_MODEL := XTM 330
   DEVICE_VARIANT := NC5AE7
   DEVICE_PACKAGES := kmod-dsa-mv88e6xxx kmod-hwmon-w83793 \
-    kmod-rtc-rs5c372a
+    kmod-rtc-rs5c372a xtm330-paneld
   BLOCKSIZE := 128k
   KERNEL = kernel-bin | fit none $(KDIR)/image-$$(DEVICE_DTS).dtb
   KERNEL_NAME := zImage.la3000000
