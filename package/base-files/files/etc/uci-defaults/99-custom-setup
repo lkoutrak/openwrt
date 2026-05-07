@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Επέκταση Partition & Filesystem για οποιοδήποτε μέγεθος SD
+DISK="/dev/mmcblk0"
+PART="4"
+
+sleep 10
+
+# Επέκταση στο 100% της κάρτας
+parted -s $DISK resizepart $PART 100%
+partprobe $DISK
+resize2fs ${DISK}p${PART}
+
+# Ρύθμιση του FSTAB για αυτόματο Mount του Overlay
+DISK_UUID=$(blkid -s UUID -o value ${DISK}p${PART})
+
+uci -q batch <<EOF
+delete fstab.overlay
+set fstab.overlay=mount
+set fstab.overlay.uuid='$DISK_UUID'
+set fstab.overlay.target='/overlay'
+set fstab.overlay.enabled='1'
+commit fstab
+EOF
+
+exit 0
