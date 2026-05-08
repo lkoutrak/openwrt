@@ -25,7 +25,40 @@ jobs:
 
       - name: Configure and Build
         run: |
-          printf 'CONFIG_TARGET_mpc85xx=y\nCONFIG_TARGET_mpc85xx_p1010=y\nCONFIG_TARGET_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y\nCONFIG_PACKAGE_luci=y\nCONFIG_PACKAGE_luci-ssl=y\nCONFIG_PACKAGE_openssh-server=y\nCONFIG_PACKAGE_ttyd=y\nCONFIG_PACKAGE_luci-app-ttyd=y\nCONFIG_PACKAGE_luci-app-statistics=y\nCONFIG_PACKAGE_luci-app-diskman=y\nCONFIG_PACKAGE_luci-app-upnp=y\nCONFIG_PACKAGE_luci-app-wol=y\nCONFIG_PACKAGE_luci-app-adblock=y\nCONFIG_PACKAGE_luci-app-wireguard=y\nCONFIG_PACKAGE_kmod-wireguard=y\nCONFIG_PACKAGE_htop=y\nCONFIG_PACKAGE_nano=y\nCONFIG_PACKAGE_curl=y\nCONFIG_PACKAGE_bash=y\nCONFIG_PACKAGE_kmod-usb-storage=y\nCONFIG_PACKAGE_kmod-fs-ext4=y\nCONFIG_PACKAGE_parted=y\nCONFIG_PACKAGE_resize2fs=y\nCONFIG_PACKAGE_tune2fs=y\nCONFIG_PACKAGE_e2fsprogs=y\nCONFIG_PACKAGE_lsblk=y\nCONFIG_PACKAGE_blkid=y\nCONFIG_TARGET_ROOTFS_PARTSIZE=7500' > .config
+          # Δημιουργία του .config με όλα τα απαραίτητα πακέτα
+          printf 'CONFIG_TARGET_mpc85xx=y\n\
+          CONFIG_TARGET_mpc85xx_p1010=y\n\
+          CONFIG_TARGET_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y\n\
+          CONFIG_PACKAGE_luci=y\n\
+          CONFIG_PACKAGE_luci-ssl=y\n\
+          CONFIG_PACKAGE_openssh-server=y\n\
+          CONFIG_PACKAGE_ttyd=y\n\
+          CONFIG_PACKAGE_luci-app-ttyd=y\n\
+          CONFIG_PACKAGE_luci-app-statistics=y\n\
+          CONFIG_PACKAGE_luci-app-diskman=y\n\
+          CONFIG_PACKAGE_luci-app-upnp=y\n\
+          CONFIG_PACKAGE_luci-app-wol=y\n\
+          CONFIG_PACKAGE_luci-app-adblock=y\n\
+          CONFIG_PACKAGE_luci-app-wireguard=y\n\
+          CONFIG_PACKAGE_kmod-wireguard=y\n\
+          CONFIG_PACKAGE_nlbwmon=y\n\
+          CONFIG_PACKAGE_luci-app-nlbwmon=y\n\
+          CONFIG_PACKAGE_irqbalance=y\n\
+          CONFIG_PACKAGE_kmod-crypto-hw-talitos=y\n\
+          CONFIG_PACKAGE_htop=y\n\
+          CONFIG_PACKAGE_nano=y\n\
+          CONFIG_PACKAGE_curl=y\n\
+          CONFIG_PACKAGE_bash=y\n\
+          CONFIG_PACKAGE_kmod-usb-storage=y\n\
+          CONFIG_PACKAGE_kmod-fs-ext4=y\n\
+          CONFIG_PACKAGE_parted=y\n\
+          CONFIG_PACKAGE_resize2fs=y\n\
+          CONFIG_PACKAGE_tune2fs=y\n\
+          CONFIG_PACKAGE_e2fsprogs=y\n\
+          CONFIG_PACKAGE_lsblk=y\n\
+          CONFIG_PACKAGE_blkid=y\n\
+          CONFIG_TARGET_ROOTFS_PARTSIZE=7500' > .config
+          
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
           make -j$(nproc) V=s
