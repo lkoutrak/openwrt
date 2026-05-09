@@ -1,4 +1,5 @@
 name: Build WatchGuard T30
+
 on:
   workflow_dispatch:
 
@@ -25,38 +26,51 @@ jobs:
 
       - name: Configure and Build
         run: |
-          # Δημιουργία του .config με όλα τα απαραίτητα πακέτα
           printf 'CONFIG_TARGET_mpc85xx=y\n\
           CONFIG_TARGET_mpc85xx_p1010=y\n\
           CONFIG_TARGET_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y\n\
           CONFIG_PACKAGE_luci=y\n\
           CONFIG_PACKAGE_luci-ssl=y\n\
-          CONFIG_PACKAGE_openssh-server=y\n\
-          CONFIG_PACKAGE_ttyd=y\n\
-          CONFIG_PACKAGE_luci-app-ttyd=y\n\
-          CONFIG_PACKAGE_luci-app-statistics=y\n\
-          CONFIG_PACKAGE_luci-app-diskman=y\n\
-          CONFIG_PACKAGE_luci-app-upnp=y\n\
-          CONFIG_PACKAGE_luci-app-wol=y\n\
-          CONFIG_PACKAGE_luci-app-adblock=y\n\
+          CONFIG_PACKAGE_luci-i18n-base-el=y\n\
+          CONFIG_PACKAGE_luci-i18n-firewall-el=y\n\
           CONFIG_PACKAGE_luci-app-wireguard=y\n\
           CONFIG_PACKAGE_kmod-wireguard=y\n\
-          CONFIG_PACKAGE_nlbwmon=y\n\
+          CONFIG_PACKAGE_luci-app-pbr=y\n\
+          CONFIG_PACKAGE_luci-app-openvpn=y\n\
+          CONFIG_PACKAGE_luci-app-adblock=y\n\
+          CONFIG_PACKAGE_luci-i18n-adblock-el=y\n\
+          CONFIG_PACKAGE_luci-app-https-dns-proxy=y\n\
+          CONFIG_PACKAGE_bind-client=y\n\
+          CONFIG_PACKAGE_luci-app-timecontrol=y\n\
+          CONFIG_PACKAGE_luci-app-access-control=y\n\
+          CONFIG_PACKAGE_luci-app-sqm=y\n\
+          CONFIG_PACKAGE_luci-i18n-sqm-el=y\n\
+          CONFIG_PACKAGE_luci-app-banip=y\n\
+          CONFIG_PACKAGE_luci-app-unbound=y\n\
+          CONFIG_PACKAGE_netdata=y\n\
           CONFIG_PACKAGE_luci-app-nlbwmon=y\n\
-          CONFIG_PACKAGE_irqbalance=y\n\
-          CONFIG_PACKAGE_kmod-crypto-hw-talitos=y\n\
-          CONFIG_PACKAGE_htop=y\n\
-          CONFIG_PACKAGE_nano=y\n\
-          CONFIG_PACKAGE_curl=y\n\
-          CONFIG_PACKAGE_bash=y\n\
+          CONFIG_PACKAGE_luci-app-statistics=y\n\
+          CONFIG_PACKAGE_luci-i18n-statistics-el=y\n\
+          CONFIG_PACKAGE_collectd-mod-cpu=y\n\
+          CONFIG_PACKAGE_collectd-mod-interface=y\n\
+          CONFIG_PACKAGE_collectd-mod-memory=y\n\
+          CONFIG_PACKAGE_collectd-mod-ping=y\n\
+          CONFIG_PACKAGE_avahi-dbus-daemon=y\n\
+          CONFIG_PACKAGE_luci-app-vlan-viz=y\n\
+          CONFIG_PACKAGE_luci-app-upnp=y\n\
+          CONFIG_PACKAGE_luci-app-attendedsysupgrade=y\n\
+          CONFIG_PACKAGE_luci-app-diskman=y\n\
           CONFIG_PACKAGE_kmod-usb-storage=y\n\
           CONFIG_PACKAGE_kmod-fs-ext4=y\n\
           CONFIG_PACKAGE_parted=y\n\
           CONFIG_PACKAGE_resize2fs=y\n\
-          CONFIG_PACKAGE_tune2fs=y\n\
           CONFIG_PACKAGE_e2fsprogs=y\n\
-          CONFIG_PACKAGE_lsblk=y\n\
-          CONFIG_PACKAGE_blkid=y\n\
+          CONFIG_PACKAGE_htop=y\n\
+          CONFIG_PACKAGE_nano=y\n\
+          CONFIG_PACKAGE_bash=y\n\
+          CONFIG_PACKAGE_curl=y\n\
+          CONFIG_PACKAGE_ttyd=y\n\
+          CONFIG_PACKAGE_luci-app-ttyd=y\n\
           CONFIG_TARGET_ROOTFS_PARTSIZE=7500' > .config
           
           make defconfig
