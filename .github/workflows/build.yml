@@ -1,4 +1,4 @@
-name: Build WatchGuard T30 P1020
+name: Build WatchGuard T30 P1020 Final
 
 on:
   workflow_dispatch:
@@ -38,8 +38,7 @@ jobs:
           CONFIG_PACKAGE_kmod-wireguard=y\n\
           CONFIG_PACKAGE_luci-app-pbr=y\n\
           CONFIG_PACKAGE_luci-app-openvpn=y\n\
-          CONFIG_PACKAGE_luci-app-adblock=y\n\
-          CONFIG_PACKAGE_luci-i18n-adblock-el=y\n\
+          CONFIG_PACKAGE_luci-app-adguardhome=y\n\
           CONFIG_PACKAGE_luci-app-https-dns-proxy=y\n\
           CONFIG_PACKAGE_bind-client=y\n\
           CONFIG_PACKAGE_luci-app-timecontrol=y\n\
@@ -49,6 +48,8 @@ jobs:
           CONFIG_PACKAGE_luci-app-banip=y\n\
           CONFIG_PACKAGE_luci-app-unbound=y\n\
           CONFIG_PACKAGE_netdata=y\n\
+          CONFIG_PACKAGE_luci-app-netdata=y\n\
+          CONFIG_PACKAGE_luci-i18n-netdata-el=y\n\
           CONFIG_PACKAGE_luci-app-nlbwmon=y\n\
           CONFIG_PACKAGE_luci-app-statistics=y\n\
           CONFIG_PACKAGE_luci-i18n-statistics-el=y\n\
@@ -81,5 +82,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: OpenWRT-T30-P1020-Firmware
+          name: WatchGuard-T30-P1020-Full-Firmware
           path: bin/targets/mpc85xx/p1020/
