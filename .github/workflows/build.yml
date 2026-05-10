@@ -1,4 +1,4 @@
-name: Build WatchGuard T30
+name: Build WatchGuard T30 P1020
 
 on:
   workflow_dispatch:
@@ -10,6 +10,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
+          repository: 'dmascord/openwrt'
           ref: 'add-watchguard-t30-w'
 
       - name: Install Dependencies
@@ -27,8 +28,8 @@ jobs:
       - name: Configure and Build
         run: |
           printf 'CONFIG_TARGET_mpc85xx=y\n\
-          CONFIG_TARGET_mpc85xx_p1010=y\n\
-          CONFIG_TARGET_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y\n\
+          CONFIG_TARGET_mpc85xx_p1020=y\n\
+          CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y\n\
           CONFIG_PACKAGE_luci=y\n\
           CONFIG_PACKAGE_luci-ssl=y\n\
           CONFIG_PACKAGE_luci-i18n-base-el=y\n\
@@ -80,5 +81,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: OpenWRT-T30-Firmware
-          path: bin/targets/mpc85xx/p1010/*
+          name: OpenWRT-T30-P1020-Firmware
+          path: bin/targets/mpc85xx/p1020/
