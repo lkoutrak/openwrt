@@ -27,21 +27,15 @@ jobs:
 
       - name: Configure and Build
         run: |
-          printf 'CONFIG_TARGET_mpc85xx=y\n\
-          CONFIG_TARGET_mpc85xx_p1020=y\n\
-          CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y\n\
-          CONFIG_TARGET_ROOTFS_SQUASHFS=y\n\
-          CONFIG_TARGET_IMAGES_GZIP=y\n\
-          CONFIG_PACKAGE_luci=y\n\
-          CONFIG_PACKAGE_luci-ssl=y\n\
-          CONFIG_PACKAGE_luci-i18n-base-el=y\n\
-          CONFIG_PACKAGE_luci-app-wireguard=y\n\
-          CONFIG_PACKAGE_luci-app-openvpn=y\n\
-          CONFIG_PACKAGE_luci-app-statistics=y\n\
-          CONFIG_PACKAGE_luci-app-diskman=y\n\
-          CONFIG_PACKAGE_htop=y\n\
-          CONFIG_PACKAGE_nano=y\n\
-          CONFIG_TARGET_ROOTFS_PARTSIZE=1000' > .config
+          # Δημιουργία καθαρού .config
+          touch .config
+          echo "CONFIG_TARGET_mpc85xx=y" >> .config
+          echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
+          echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
+          echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
+          echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
+          echo "CONFIG_PACKAGE_luci=y" >> .config
+          echo "CONFIG_TARGET_ROOTFS_PARTSIZE=500" >> .config
           
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
