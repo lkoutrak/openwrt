@@ -27,41 +27,38 @@ jobs:
 
       - name: Configure and Build
         run: |
-          printf 'CONFIG_TARGET_mpc85xx=y\n\
-          CONFIG_TARGET_mpc85xx_p1020=y\n\
-          CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y\n\
-          CONFIG_TARGET_ROOTFS_SQUASHFS=y\n\
-          CONFIG_TARGET_IMAGES_GZIP=y\n\
-          CONFIG_PACKAGE_luci=y\n\
-          CONFIG_PACKAGE_luci-ssl=y\n\
-          CONFIG_PACKAGE_openssh-server=y\n\
-          CONFIG_PACKAGE_ttyd=y\n\
-          CONFIG_PACKAGE_luci-app-ttyd=y\n\
-          CONFIG_PACKAGE_luci-app-statistics=y\n\
-          CONFIG_PACKAGE_luci-app-diskman=y\n\
-          CONFIG_PACKAGE_luci-app-upnp=y\n\
-          CONFIG_PACKAGE_luci-app-wol=y\n\
-          CONFIG_PACKAGE_luci-app-adblock=y\n\
-          CONFIG_PACKAGE_luci-app-wireguard=y\n\
-          CONFIG_PACKAGE_kmod-wireguard=y\n\
-          CONFIG_PACKAGE_nlbwmon=y\n\
-          CONFIG_PACKAGE_luci-app-nlbwmon=y\n\
-          CONFIG_PACKAGE_irqbalance=y\n\
-          CONFIG_PACKAGE_kmod-crypto-hw-talitos=y\n\
-          CONFIG_PACKAGE_htop=y\n\
-          CONFIG_PACKAGE_nano=y\n\
-          CONFIG_PACKAGE_curl=y\n\
-          CONFIG_PACKAGE_bash=y\n\
-          CONFIG_PACKAGE_kmod-usb-storage=y\n\
-          CONFIG_PACKAGE_kmod-fs-ext4=y\n\
-          CONFIG_PACKAGE_parted=y\n\
-          CONFIG_PACKAGE_resize2fs=y\n\
-          CONFIG_PACKAGE_tune2fs=y\n\
-          CONFIG_PACKAGE_e2fsprogs=y\n\
-          CONFIG_PACKAGE_lsblk=y\n\
-          CONFIG_PACKAGE_blkid=y\n\
-          CONFIG_TARGET_ROOTFS_PARTSIZE=7500' > .config
-          
+          echo "CONFIG_TARGET_mpc85xx=y" > .config
+          echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
+          echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
+          echo "CONFIG_TARGET_MULTI_PROFILE=n" >> .config
+          echo "CONFIG_TARGET_DEVICE_mpc85xx_p1020_DEVICE_DEFAULT=n" >> .config
+          echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
+          echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
+          echo "CONFIG_TARGET_ROOTFS_PARTSIZE=7500" >> .config
+          echo "CONFIG_PACKAGE_luci=y" >> .config
+          echo "CONFIG_PACKAGE_luci-ssl=y" >> .config
+          echo "CONFIG_PACKAGE_openssh-server=y" >> .config
+          echo "CONFIG_PACKAGE_ttyd=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-ttyd=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-statistics=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-diskman=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-upnp=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-wol=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-adblock=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-wireguard=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-wireguard=y" >> .config
+          echo "CONFIG_PACKAGE_nlbwmon=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-nlbwmon=y" >> .config
+          echo "CONFIG_PACKAGE_htop=y" >> .config
+          echo "CONFIG_PACKAGE_nano=y" >> .config
+          echo "CONFIG_PACKAGE_curl=y" >> .config
+          echo "CONFIG_PACKAGE_bash=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-usb-storage=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-fs-ext4=y" >> .config
+          echo "CONFIG_PACKAGE_parted=y" >> .config
+          echo "CONFIG_PACKAGE_resize2fs=y" >> .config
+          echo "CONFIG_PACKAGE_e2fsprogs=y" >> .config
+
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
           make -j$(nproc) V=s
@@ -69,5 +66,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-P1020-Final
+          name: WatchGuard-T30-P1020-Final-Image
           path: bin/targets/mpc85xx/p1020/
