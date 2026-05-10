@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'dmascord/openwrt'
-          ref: 'mpc85xx-watchguard-t30'
+          ref: 'master'
 
       - name: Install Dependencies
         run: |
@@ -54,9 +54,4 @@ jobs:
           CONFIG_PACKAGE_luci-i18n-netdata-el=y\n\
           CONFIG_PACKAGE_luci-app-nlbwmon=y\n\
           CONFIG_PACKAGE_luci-app-statistics=y\n\
-          CONFIG_PACKAGE_luci-i18n-statistics-el=y\n\
-          CONFIG_PACKAGE_collectd-mod-cpu=y\n\
-          CONFIG_PACKAGE_collectd-mod-interface=y\n\
-          CONFIG_PACKAGE_collectd-mod-memory=y\n\
-          CONFIG_PACKAGE_collectd-mod-ping=y\n\
-          CONFIG_PACKAGE_avahi-dbus-daemon=
+          CONFIG_PACKAGE_luci-i18n
