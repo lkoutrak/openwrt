@@ -1,4 +1,4 @@
-name: Build WatchGuard T30 Ultimate SD
+name: Build WatchGuard T30 Final SD-SUCCESS
 
 on:
   workflow_dispatch:
@@ -25,9 +25,11 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Hard-Override p1020.mk
+      - name: Clean and Hard-Override p1020.mk
         run: |
           cat <<EOF > target/linux/mpc85xx/image/p1020.mk
+          include \$(INCLUDE_DIR)/image.mk
+
           define Device/watchguard_firebox-t30
             DEVICE_VENDOR := WatchGuard
             DEVICE_MODEL := Firebox T30
@@ -49,60 +51,4 @@ jobs:
           echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
           echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
           echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
-          echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
-          echo "CONFIG_TARGET_ROOTFS_PARTSIZE=7500" >> .config
-
-          {
-            # Core Luci & Greek
-            echo "CONFIG_PACKAGE_luci=y"
-            echo "CONFIG_PACKAGE_luci-ssl=y"
-            echo "CONFIG_PACKAGE_luci-i18n-base-el=y"
-            echo "CONFIG_PACKAGE_luci-i18n-firewall-el=y"
-            
-            # Adblocking & DNS
-            echo "CONFIG_PACKAGE_luci-app-adguardhome=y"
-            echo "CONFIG_PACKAGE_luci-app-https-dns-proxy=y"
-            
-            # VPNs
-            echo "CONFIG_PACKAGE_luci-app-wireguard=y"
-            echo "CONFIG_PACKAGE_kmod-wireguard=y"
-            echo "CONFIG_PACKAGE_luci-app-openvpn=y"
-            
-            # Monitoring & Stats
-            echo "CONFIG_PACKAGE_luci-app-netdata=y"
-            echo "CONFIG_PACKAGE_netdata=y"
-            echo "CONFIG_PACKAGE_luci-app-statistics=y"
-            echo "CONFIG_PACKAGE_luci-app-nlbwmon=y"
-            
-            # Disk Management & USB
-            echo "CONFIG_PACKAGE_luci-app-diskman=y"
-            echo "CONFIG_PACKAGE_kmod-usb-storage=y"
-            echo "CONFIG_PACKAGE_kmod-fs-ext4=y"
-            echo "CONFIG_PACKAGE_e2fsprogs=y"
-            echo "CONFIG_PACKAGE_parted=y"
-            echo "CONFIG_PACKAGE_resize2fs=y"
-            
-            # System Tools
-            echo "CONFIG_PACKAGE_luci-app-ttyd=y"
-            echo "CONFIG_PACKAGE_htop=y"
-            echo "CONFIG_PACKAGE_nano=y"
-            echo "CONFIG_PACKAGE_bash=y"
-            echo "CONFIG_PACKAGE_curl=y"
-            echo "CONFIG_PACKAGE_luci-app-attendedsysupgrade=y"
-            
-            # Networking Apps
-            echo "CONFIG_PACKAGE_luci-app-sqm=y"
-            echo "CONFIG_PACKAGE_luci-app-upnp=y"
-            echo "CONFIG_PACKAGE_luci-app-banip=y"
-            echo "CONFIG_PACKAGE_luci-app-vlan-viz=y"
-          } >> .config
-
-          make defconfig
-          export FORCE_UNSAFE_CONFIGURE=1
-          make -j$(nproc) V=s
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: WatchGuard-T30-Full-SD
-          path: bin/targets/mpc85xx/p1020/*watchguard*
+          echo "CONFIG_TARGET_IMAGES_GZIP
