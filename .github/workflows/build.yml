@@ -1,4 +1,4 @@
-name: Build WatchGuard T30 P1020 Final
+name: Build WatchGuard T30 P1020 Final Hard-Fixed
 
 on:
   workflow_dispatch:
@@ -20,25 +20,31 @@ jobs:
             gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig \
             python3-dev python3-setuptools
 
-      - name: Clean Source Tree
-        run: |
-          sed -i '/Device\/aerohive_hiveap-330/,/endef/d' target/linux/mpc85xx/image/p1020.mk
-          sed -i '/Device\/enterasys_ws-ap3710i/,/endef/d' target/linux/mpc85xx/image/p1020.mk
-          sed -i '/Device\/extreme-networks_ws-ap3825i/,/endef/d' target/linux/mpc85xx/image/p1020.mk
-          sed -i '/Device\/hpe_msm460/,/endef/d' target/linux/mpc85xx/image/p1020.mk
-          sed -i '/Device\/ocedo_panda/,/endef/d' target/linux/mpc85xx/image/p1020.mk
-
       - name: Update and Install Feeds
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+
+      - name: Hard-Fix Image Definition
+        run: |
+          cat <<EOF > target/linux/mpc85xx/image/p1020.mk
+          define Device/watchguard_firebox-t30
+            \$(Device/mpc85xx-p1020)
+            DEVICE_VENDOR := WatchGuard
+            DEVICE_MODEL := Firebox T30
+            DEVICE_PACKAGES := kmod-usb-storage kmod-fs-ext4 kmod-usb-ohci kmod-usb2 kmod-usb3
+            IMAGES := factory.img.gz
+            IMAGE/factory.img.gz := append-kernel | pad-to 128k | append-rootfs | pad-rootfs | check-size
+          endef
+          TARGET_DEVICES += watchguard_firebox-t30
+          \$(eval \$(call BuildImage))
+          EOF
 
       - name: Configure and Build
         run: |
           echo "CONFIG_TARGET_mpc85xx=y" > .config
           echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
           echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
-          echo "CONFIG_TARGET_MULTI_PROFILE=n" >> .config
           echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
           echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
           echo "CONFIG_TARGET_ROOTFS_PARTSIZE=7500" >> .config
@@ -48,45 +54,45 @@ jobs:
             echo "CONFIG_PACKAGE_luci-ssl=y"
             echo "CONFIG_PACKAGE_luci-i18n-base-el=y"
             echo "CONFIG_PACKAGE_luci-i18n-firewall-el=y"
+            echo "CONFIG_PACKAGE_luci-app-adguardhome=y"
             echo "CONFIG_PACKAGE_luci-app-wireguard=y"
             echo "CONFIG_PACKAGE_kmod-wireguard=y"
-            echo "CONFIG_PACKAGE_luci-app-pbr=y"
             echo "CONFIG_PACKAGE_luci-app-openvpn=y"
-            echo "CONFIG_PACKAGE_luci-app-adguardhome=y"
-            echo "CONFIG_PACKAGE_luci-app-https-dns-proxy=y"
-            echo "CONFIG_PACKAGE_bind-client=y"
-            echo "CONFIG_PACKAGE_luci-app-timecontrol=y"
-            echo "CONFIG_PACKAGE_luci-app-access-control=y"
+            echo "CONFIG_PACKAGE_luci-app-pbr=y"
             echo "CONFIG_PACKAGE_luci-app-sqm=y"
             echo "CONFIG_PACKAGE_luci-i18n-sqm-el=y"
-            echo "CONFIG_PACKAGE_luci-app-banip=y"
-            echo "CONFIG_PACKAGE_luci-app-unbound=y"
-            echo "CONFIG_PACKAGE_netdata=y"
             echo "CONFIG_PACKAGE_luci-app-netdata=y"
+            echo "CONFIG_PACKAGE_netdata=y"
             echo "CONFIG_PACKAGE_luci-i18n-netdata-el=y"
-            echo "CONFIG_PACKAGE_luci-app-nlbwmon=y"
+            echo "CONFIG_PACKAGE_luci-app-diskman=y"
+            echo "CONFIG_PACKAGE_luci-app-ttyd=y"
+            echo "CONFIG_PACKAGE_ttyd=y"
             echo "CONFIG_PACKAGE_luci-app-statistics=y"
             echo "CONFIG_PACKAGE_luci-i18n-statistics-el=y"
-            echo "CONFIG_PACKAGE_collectd-mod-cpu=y"
-            echo "CONFIG_PACKAGE_collectd-mod-interface=y"
-            echo "CONFIG_PACKAGE_collectd-mod-memory=y"
-            echo "CONFIG_PACKAGE_collectd-mod-ping=y"
-            echo "CONFIG_PACKAGE_avahi-dbus-daemon=y"
-            echo "CONFIG_PACKAGE_luci-app-vlan-viz=y"
+            echo "CONFIG_PACKAGE_luci-app-nlbwmon=y"
+            echo "CONFIG_PACKAGE_luci-app-banip=y"
             echo "CONFIG_PACKAGE_luci-app-upnp=y"
+            echo "CONFIG_PACKAGE_luci-app-unbound=y"
+            echo "CONFIG_PACKAGE_luci-app-access-control=y"
+            echo "CONFIG_PACKAGE_luci-app-timecontrol=y"
             echo "CONFIG_PACKAGE_luci-app-attendedsysupgrade=y"
-            echo "CONFIG_PACKAGE_luci-app-diskman=y"
+            echo "CONFIG_PACKAGE_luci-app-https-dns-proxy=y"
+            echo "CONFIG_PACKAGE_luci-app-vlan-viz=y"
             echo "CONFIG_PACKAGE_kmod-usb-storage=y"
             echo "CONFIG_PACKAGE_kmod-fs-ext4=y"
+            echo "CONFIG_PACKAGE_e2fsprogs=y"
             echo "CONFIG_PACKAGE_parted=y"
             echo "CONFIG_PACKAGE_resize2fs=y"
-            echo "CONFIG_PACKAGE_e2fsprogs=y"
             echo "CONFIG_PACKAGE_htop=y"
             echo "CONFIG_PACKAGE_nano=y"
             echo "CONFIG_PACKAGE_bash=y"
             echo "CONFIG_PACKAGE_curl=y"
-            echo "CONFIG_PACKAGE_ttyd=y"
-            echo "CONFIG_PACKAGE_luci-app-ttyd=y"
+            echo "CONFIG_PACKAGE_bind-client=y"
+            echo "CONFIG_PACKAGE_avahi-dbus-daemon=y"
+            echo "CONFIG_PACKAGE_collectd-mod-cpu=y"
+            echo "CONFIG_PACKAGE_collectd-mod-interface=y"
+            echo "CONFIG_PACKAGE_collectd-mod-memory=y"
+            echo "CONFIG_PACKAGE_collectd-mod-ping=y"
           } >> .config
 
           make defconfig
@@ -96,5 +102,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-ONLY
-          path: bin/targets/mpc85xx/p1020/
+          name: WatchGuard-T30-FIXED-SD
+          path: bin/targets/mpc85xx/p1020/*watchguard*
