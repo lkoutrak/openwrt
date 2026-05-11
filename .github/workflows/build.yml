@@ -20,6 +20,14 @@ jobs:
             gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig \
             python3-dev python3-setuptools
 
+      - name: Clean Source Tree
+        run: |
+          sed -i '/Device\/aerohive_hiveap-330/,/endef/d' target/linux/mpc85xx/image/p1020.mk
+          sed -i '/Device\/enterasys_ws-ap3710i/,/endef/d' target/linux/mpc85xx/image/p1020.mk
+          sed -i '/Device\/extreme-networks_ws-ap3825i/,/endef/d' target/linux/mpc85xx/image/p1020.mk
+          sed -i '/Device\/hpe_msm460/,/endef/d' target/linux/mpc85xx/image/p1020.mk
+          sed -i '/Device\/ocedo_panda/,/endef/d' target/linux/mpc85xx/image/p1020.mk
+
       - name: Update and Install Feeds
         run: |
           ./scripts/feeds update -a
@@ -31,8 +39,6 @@ jobs:
           echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
           echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
           echo "CONFIG_TARGET_MULTI_PROFILE=n" >> .config
-          echo "CONFIG_TARGET_PER_DEVICE_ROOTFS=y" >> .config
-          echo "CONFIG_TARGET_DEVICE_mpc85xx_p1020_DEVICE_DEFAULT=n" >> .config
           echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
           echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
           echo "CONFIG_TARGET_ROOTFS_PARTSIZE=7500" >> .config
@@ -90,5 +96,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-P1020-Final-Clean
+          name: WatchGuard-T30-ONLY
           path: bin/targets/mpc85xx/p1020/
