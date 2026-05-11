@@ -29,37 +29,60 @@ jobs:
         run: |
           echo "CONFIG_TARGET_mpc85xx=y" > .config
           echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
+          
+          make defconfig
+          
           echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
-          echo "CONFIG_TARGET_MULTI_PROFILE=n" >> .config
-          echo "CONFIG_TARGET_DEVICE_mpc85xx_p1020_DEVICE_DEFAULT=n" >> .config
+          echo "CONFIG_TARGET_DEVICE_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
           echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
           echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
           echo "CONFIG_TARGET_ROOTFS_PARTSIZE=7500" >> .config
           echo "CONFIG_PACKAGE_luci=y" >> .config
           echo "CONFIG_PACKAGE_luci-ssl=y" >> .config
-          echo "CONFIG_PACKAGE_openssh-server=y" >> .config
-          echo "CONFIG_PACKAGE_ttyd=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-ttyd=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-statistics=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-diskman=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-upnp=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-wol=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-adblock=y" >> .config
+          echo "CONFIG_PACKAGE_luci-i18n-base-el=y" >> .config
+          echo "CONFIG_PACKAGE_luci-i18n-firewall-el=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-wireguard=y" >> .config
           echo "CONFIG_PACKAGE_kmod-wireguard=y" >> .config
-          echo "CONFIG_PACKAGE_nlbwmon=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-pbr=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-openvpn=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-adguardhome=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-https-dns-proxy=y" >> .config
+          echo "CONFIG_PACKAGE_bind-client=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-timecontrol=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-access-control=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-sqm=y" >> .config
+          echo "CONFIG_PACKAGE_luci-i18n-sqm-el=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-banip=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-unbound=y" >> .config
+          echo "CONFIG_PACKAGE_netdata=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-netdata=y" >> .config
+          echo "CONFIG_PACKAGE_luci-i18n-netdata-el=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-nlbwmon=y" >> .config
-          echo "CONFIG_PACKAGE_htop=y" >> .config
-          echo "CONFIG_PACKAGE_nano=y" >> .config
-          echo "CONFIG_PACKAGE_curl=y" >> .config
-          echo "CONFIG_PACKAGE_bash=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-statistics=y" >> .config
+          echo "CONFIG_PACKAGE_luci-i18n-statistics-el=y" >> .config
+          echo "CONFIG_PACKAGE_collectd-mod-cpu=y" >> .config
+          echo "CONFIG_PACKAGE_collectd-mod-interface=y" >> .config
+          echo "CONFIG_PACKAGE_collectd-mod-memory=y" >> .config
+          echo "CONFIG_PACKAGE_collectd-mod-ping=y" >> .config
+          echo "CONFIG_PACKAGE_avahi-dbus-daemon=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-vlan-viz=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-upnp=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-attendedsysupgrade=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-diskman=y" >> .config
           echo "CONFIG_PACKAGE_kmod-usb-storage=y" >> .config
           echo "CONFIG_PACKAGE_kmod-fs-ext4=y" >> .config
           echo "CONFIG_PACKAGE_parted=y" >> .config
           echo "CONFIG_PACKAGE_resize2fs=y" >> .config
           echo "CONFIG_PACKAGE_e2fsprogs=y" >> .config
-
+          echo "CONFIG_PACKAGE_htop=y" >> .config
+          echo "CONFIG_PACKAGE_nano=y" >> .config
+          echo "CONFIG_PACKAGE_bash=y" >> .config
+          echo "CONFIG_PACKAGE_curl=y" >> .config
+          echo "CONFIG_PACKAGE_ttyd=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-ttyd=y" >> .config
+          
           make defconfig
+          
           export FORCE_UNSAFE_CONFIGURE=1
           make -j$(nproc) V=s
 
