@@ -1,4 +1,4 @@
-name: WatchGuard T30 - P1020 LIGHT SPEED
+name: WatchGuard T30 - IMAGE BUILDER METHOD
 
 on:
   workflow_dispatch:
@@ -13,37 +13,47 @@ jobs:
           repository: 'dmascord/openwrt'
           ref: 'add-watchguard-t30-w'
 
-      - name: Install Dependencies
+      - name: Install Tools
         run: |
           sudo apt update
-          sudo apt install -y build-essential clang flex bison g++ gawk gcc-multilib g++-multilib \
-            gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig \
-            python3-dev python3-setuptools device-tree-compiler
+          sudo apt install -y build-essential libncurses5-dev libssl-dev zlib1g-dev gawk rsync unzip wget python3
 
-      - name: Update and Install Feeds
+      - name: Download and Setup Official Image Builder
         run: |
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
+          # Κατεβάζουμε τον έτοιμο μηχανισμό παραγωγής images για p1020
+          wget https://downloads.openwrt.org/releases/23.05.0/targets/mpc85xx/p1020/openwrt-imagebuilder-23.05.0-mpc85xx-p1020.Linux-x86_64.tar.xz
+          tar xf openwrt-imagebuilder-*.tar.xz
+          mv openwrt-imagebuilder-* ib
 
-      - name: Minimal Config for P1020
+      - name: Inject WatchGuard T30 Support into IB
         run: |
-          # Μόνο τα απολύτως απαραίτητα για να βγει το image γρήγορα
-          echo "CONFIG_TARGET_mpc85xx=y" > .config
-          echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
-          echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
-          echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
-          echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
-          echo "CONFIG_PACKAGE_luci=y" >> .config
-          echo "CONFIG_PACKAGE_luci-ssl=y" >> .config
-          
-          make defconfig
-          export FORCE_UNSAFE_CONFIGURE=1
-          # Χρήση j4 (αν το επιτρέπει ο runner) για μέγιστη ταχύτητα
-          make -j$(nproc) V=s
+          # Αντιγράφουμε τα αρχεία του dmascord (DTS και προφίλ) μέσα στον Image Builder
+          cp target/linux/mpc85xx/image/p1020.mk ib/target/linux/mpc85xx/image/ 2>/dev/null || true
+          # Φτιάχνουμε ένα "σταθερό" Makefile που ορίζει ΜΟΝΟ το T30 για να μην μπερδεύεται
+          printf "include \$(INCLUDE_DIR)/image.mk\n\n" > ib/target/linux/mpc85xx/image/p1020.mk
+          cat <<'EOF' >> ib/target/linux/mpc85xx/image/p1020.mk
+          define Device/watchguard_firebox-t30
+            DEVICE_VENDOR := WatchGuard
+            DEVICE_MODEL := Firebox T30
+            DEVICE_DTS := watchguard-firebox-t30
+            KERNEL := append-dtb | pad-to 64k | lzma
+            IMAGES := factory.img.gz
+            IMAGE/factory.img.gz := append-kernel | pad-to 128k | append-rootfs | pad-rootfs | check-size
+          endef
+          TARGET_DEVICES += watchguard_firebox-t30
+          $(eval $(call BuildImage))
+          EOF
 
-      - name: Upload Artifacts
+      - name: Generate REAL .img.gz
+        run: |
+          cd ib
+          # Εδώ δίνουμε την εντολή παραγωγής χρησιμοποιώντας τα έτοιμα πακέτα
+          # Προσθέτουμε τα πακέτα που θέλεις (LuCI κτλ)
+          make image PROFILE="watchguard_firebox-t30" PACKAGES="luci luci-ssl kmod-usb-storage kmod-fs-ext4"
+
+      - name: Upload The Elusive Image
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-Speed-Build
-          path: bin/targets/mpc85xx/p1020/
+          name: WatchGuard-T30-FINAL-SD-IMAGE
+          path: ib/bin/targets/mpc85xx/p1020/*.img.gz
