@@ -1,4 +1,4 @@
-name: WatchGuard T30 - IMAGE BUILDER METHOD
+name: WatchGuard T30 - IMAGE BUILDER FINAL
 
 on:
   workflow_dispatch:
@@ -18,18 +18,21 @@ jobs:
           sudo apt update
           sudo apt install -y build-essential libncurses5-dev libssl-dev zlib1g-dev gawk rsync unzip wget python3
 
-      - name: Download and Setup Official Image Builder
+      - name: Download and Setup Image Builder
         run: |
-          # Κατεβάζουμε τον έτοιμο μηχανισμό παραγωγής images για p1020
+          # Κατεβάζουμε και αποσυμπιέζουμε απευθείας στον φάκελο 'ib'
+          mkdir ib
           wget https://downloads.openwrt.org/releases/23.05.0/targets/mpc85xx/p1020/openwrt-imagebuilder-23.05.0-mpc85xx-p1020.Linux-x86_64.tar.xz
-          tar xf openwrt-imagebuilder-*.tar.xz
-          mv openwrt-imagebuilder-* ib
+          tar -xJf openwrt-imagebuilder-*.tar.xz -C ib --strip-components=1
 
-      - name: Inject WatchGuard T30 Support into IB
+      - name: Inject WatchGuard T30 Support
         run: |
-          # Αντιγράφουμε τα αρχεία του dmascord (DTS και προφίλ) μέσα στον Image Builder
-          cp target/linux/mpc85xx/image/p1020.mk ib/target/linux/mpc85xx/image/ 2>/dev/null || true
-          # Φτιάχνουμε ένα "σταθερό" Makefile που ορίζει ΜΟΝΟ το T30 για να μην μπερδεύεται
+          # Αντιγράφουμε το DTS από τον κώδικα του dmascord στον Image Builder
+          # Πρέπει να μπει στο σωστό φάκελο για να το δει ο IB
+          mkdir -p ib/target/linux/mpc85xx/dts/
+          cp target/linux/mpc85xx/files/arch/powerpc/boot/dts/watchguard-firebox-t30.dts ib/target/linux/mpc85xx/dts/ 2>/dev/null || true
+          
+          # Δημιουργούμε το προφίλ της συσκευής
           printf "include \$(INCLUDE_DIR)/image.mk\n\n" > ib/target/linux/mpc85xx/image/p1020.mk
           cat <<'EOF' >> ib/target/linux/mpc85xx/image/p1020.mk
           define Device/watchguard_firebox-t30
@@ -47,13 +50,12 @@ jobs:
       - name: Generate REAL .img.gz
         run: |
           cd ib
-          # Εδώ δίνουμε την εντολή παραγωγής χρησιμοποιώντας τα έτοιμα πακέτα
-          # Προσθέτουμε τα πακέτα που θέλεις (LuCI κτλ)
+          # Φτιάχνουμε το image. Αν το προφίλ είναι σωστό, θα το βρει αμέσως.
           make image PROFILE="watchguard_firebox-t30" PACKAGES="luci luci-ssl kmod-usb-storage kmod-fs-ext4"
 
       - name: Upload The Elusive Image
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-FINAL-SD-IMAGE
+          name: WatchGuard-T30-FINAL-IMAGE
           path: ib/bin/targets/mpc85xx/p1020/*.img.gz
