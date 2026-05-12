@@ -1,4 +1,4 @@
-name: Build WatchGuard T30 FINAL
+name: Build WatchGuard T30 - P1020 FIX
 
 on:
   workflow_dispatch:
@@ -25,49 +25,42 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Patch dmascord Makefile
-        run: |
-          # Εδώ διορθώνουμε το αρχείο του dmascord για να παράξει SD IMAGE (.img.gz)
-          # Χωρίς αυτό το βήμα, το build θα τελειώσει αλλά δεν θα έχεις αρχείο για Rufus
-          printf "include \$(INCLUDE_DIR)/image.mk\n\n" > target/linux/mpc85xx/image/p1020.mk
-          cat <<'EOF' >> target/linux/mpc85xx/image/p1020.mk
-          define Device/watchguard_firebox-t30
-            DEVICE_VENDOR := WatchGuard
-            DEVICE_MODEL := Firebox T30
-            DEVICE_VARIANT := T30-W
-            BOARD_NAME := watchguard,firebox-t30
-            DEVICE_DTS := watchguard-firebox-t30
-            KERNEL := append-dtb | pad-to 64k | lzma
-            DEVICE_PACKAGES := kmod-usb-storage kmod-fs-ext4 kmod-usb-ohci kmod-usb2 kmod-usb3
-            IMAGES := factory.img.gz
-            IMAGE/factory.img.gz := append-kernel | pad-to 128k | append-rootfs | pad-rootfs | check-size
-          endef
-          TARGET_DEVICES += watchguard_firebox-t30
-          $(eval $(call BuildImage))
-          EOF
-
       - name: Configure and Build
         run: |
-          # Στόχος P1020 (εκεί που είναι το T30)
-          echo "CONFIG_TARGET_mpc85xx=y" > .config
-          echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
-          echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
-          echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
-          echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
+          # Χρησιμοποιούμε το δικό σου config ως βάση, αλλάζοντας το target σε p1020
+          printf 'CONFIG_TARGET_mpc85xx=y\n\
+          CONFIG_TARGET_mpc85xx_p1020=y\n\
+          CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y\n\
+          CONFIG_PACKAGE_luci=y\n\
+          CONFIG_PACKAGE_luci-ssl=y\n\
+          CONFIG_PACKAGE_luci-i18n-base-el=y\n\
+          CONFIG_PACKAGE_luci-i18n-firewall-el=y\n\
+          CONFIG_PACKAGE_luci-app-wireguard=y\n\
+          CONFIG_PACKAGE_kmod-wireguard=y\n\
+          CONFIG_PACKAGE_luci-app-pbr=y\n\
+          CONFIG_PACKAGE_luci-app-openvpn=y\n\
+          CONFIG_PACKAGE_luci-app-adblock=y\n\
+          CONFIG_PACKAGE_luci-app-sqm=y\n\
+          CONFIG_PACKAGE_luci-app-nlbwmon=y\n\
+          CONFIG_PACKAGE_luci-app-statistics=y\n\
+          CONFIG_PACKAGE_kmod-usb-storage=y\n\
+          CONFIG_PACKAGE_kmod-fs-ext4=y\n\
+          CONFIG_PACKAGE_parted=y\n\
+          CONFIG_PACKAGE_resize2fs=y\n\
+          CONFIG_PACKAGE_e2fsprogs=y\n\
+          CONFIG_PACKAGE_htop=y\n\
+          CONFIG_PACKAGE_bash=y\n\
+          CONFIG_PACKAGE_curl=y\n\
+          CONFIG_TARGET_ROOTFS_PARTSIZE=7500' > .config
           
-          # Μόνο τα βασικά για να μην φάμε χρόνο και σκάσει
-          echo "CONFIG_PACKAGE_luci=y" >> .config
-          echo "CONFIG_PACKAGE_luci-ssl=y" >> .config
-          echo "CONFIG_PACKAGE_luci-i18n-base-el=y" >> .config
-
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
-          # Η εντολή που είδες ότι προλαβαίνει το χρόνο
+          # Χρήση όλων των πυρήνων (-j$(nproc)) για να μην μας κόψει το GitHub
           make -j$(nproc) V=s
 
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-Firmware-SD
-          path: bin/targets/mpc85xx/p1020/
+          name: OpenWRT-T30-P1020-Firmware
+          path: bin/targets/mpc85xx/p1020/*
