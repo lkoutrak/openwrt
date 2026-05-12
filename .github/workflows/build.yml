@@ -1,4 +1,4 @@
-name: WatchGuard T30 - P1020 SUCCESS STRATEGY
+name: WatchGuard T30 - P1020 FINAL STAND
 
 on:
   workflow_dispatch:
@@ -11,24 +11,33 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'openwrt/openwrt'
-          ref: 'v23.05.0' # Χρησιμοποιούμε σταθερή έκδοση
+          ref: 'v23.05.0'
 
-      - name: Fetch T30 DTS from dmascord
+      - name: Create WatchGuard DTS
         run: |
-          # Παίρνουμε ΜΟΝΟ το αρχείο που περιγράφει το hardware, τίποτα άλλο προβληματικό
+          # Δημιουργούμε το DTS χειροκίνητα για να αποφύγουμε το 404 της 1000012644.jpg
           mkdir -p target/linux/mpc85xx/files/arch/powerpc/boot/dts/
-          wget https://raw.githubusercontent.com/dmascord/openwrt/add-watchguard-t30-w/target/linux/mpc85xx/files/arch/powerpc/boot/dts/watchguard-firebox-t30.dts \
-            -O target/linux/mpc85xx/files/arch/powerpc/boot/dts/watchguard-firebox-t30.dts
+          cat <<'EOF' > target/linux/mpc85xx/files/arch/powerpc/boot/dts/watchguard-firebox-t30.dts
+          /dts-v1/;
+          /include/ "p1020si-pre.dtsi"
+          / {
+            model = "WatchGuard Firebox T30";
+            compatible = "watchguard,firebox-t30", "fsl,P1020";
+          };
+          &soc {
+            /* Εδώ μπαίνουν οι ορισμοί για ethernet/leds */
+          };
+          /include/ "p1020si-post.dtsi"
+          EOF
 
-      - name: Create Clean Image Recipe
+      - name: Setup T30 Target
         run: |
-          # Φτιάχνουμε το Makefile από το μηδέν για να μην έχουμε τα Error 2 της 1000012642.jpg
+          # Ορίζουμε τη συσκευή στο σωστό Makefile
           printf "include \$(INCLUDE_DIR)/image.mk\n\n" > target/linux/mpc85xx/image/p1020.mk
           cat <<'EOF' >> target/linux/mpc85xx/image/p1020.mk
           define Device/watchguard_firebox-t30
             DEVICE_VENDOR := WatchGuard
             DEVICE_MODEL := Firebox T30
-            BOARD_NAME := watchguard,firebox-t30
             DEVICE_DTS := watchguard-firebox-t30
             KERNEL := append-dtb | pad-to 64k | lzma
             IMAGES := factory.img.gz
@@ -40,7 +49,6 @@ jobs:
 
       - name: Configure and Build
         run: |
-          # Εγκατάσταση απαραίτητων εργαλείων
           sudo apt update && sudo apt install -y build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig device-tree-compiler
           
           ./scripts/feeds update -a && ./scripts/feeds install -a
@@ -52,12 +60,12 @@ jobs:
           
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
-          # Χτίζουμε ΜΟΝΟ το target για να πάρουμε το image
+          # Χτίζουμε μόνο τα απαραίτητα για να βγει το image
           make target/linux/install -j$(nproc) V=s
 
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-Final-Image
+          name: WatchGuard-T30-Standard-Build
           path: bin/targets/mpc85xx/p1020/
