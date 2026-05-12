@@ -1,4 +1,4 @@
-name: Build WatchGuard T30 Final SD-SUCCESS
+name: Build WatchGuard T30 FAST-STRIP
 
 on:
   workflow_dispatch:
@@ -25,8 +25,9 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Clean and Hard-Override p1020.mk
+      - name: Strip All Devices Except T30
         run: |
+          # Διαγράφουμε τα πάντα και κρατάμε μόνο το T30 για ταχύτητα
           printf "include \$(INCLUDE_DIR)/image.mk\n\n" > target/linux/mpc85xx/image/p1020.mk
           cat <<'EOF' >> target/linux/mpc85xx/image/p1020.mk
           define Device/watchguard_firebox-t30
@@ -44,68 +45,30 @@ jobs:
           $(eval $(call BuildImage))
           EOF
 
-      - name: Configure and Build
+      - name: Minimal Configure and Build
         run: |
           echo "CONFIG_TARGET_mpc85xx=y" > .config
           echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
           echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
           echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
           echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
-          echo "CONFIG_TARGET_ROOTFS_PARTSIZE=7500" >> .config
+          echo "CONFIG_TARGET_ROOTFS_PARTSIZE=500" >> .config
 
           {
             echo "CONFIG_PACKAGE_luci=y"
             echo "CONFIG_PACKAGE_luci-ssl=y"
             echo "CONFIG_PACKAGE_luci-i18n-base-el=y"
-            echo "CONFIG_PACKAGE_luci-i18n-firewall-el=y"
-            echo "CONFIG_PACKAGE_luci-app-adguardhome=y"
-            echo "CONFIG_PACKAGE_luci-app-wireguard=y"
-            echo "CONFIG_PACKAGE_kmod-wireguard=y"
-            echo "CONFIG_PACKAGE_luci-app-openvpn=y"
-            echo "CONFIG_PACKAGE_luci-app-pbr=y"
-            echo "CONFIG_PACKAGE_luci-app-sqm=y"
-            echo "CONFIG_PACKAGE_luci-i18n-sqm-el=y"
-            echo "CONFIG_PACKAGE_luci-app-netdata=y"
-            echo "CONFIG_PACKAGE_netdata=y"
-            echo "CONFIG_PACKAGE_luci-i18n-netdata-el=y"
-            echo "CONFIG_PACKAGE_luci-app-diskman=y"
-            echo "CONFIG_PACKAGE_luci-app-ttyd=y"
-            echo "CONFIG_PACKAGE_ttyd=y"
-            echo "CONFIG_PACKAGE_luci-app-statistics=y"
-            echo "CONFIG_PACKAGE_luci-i18n-statistics-el=y"
-            echo "CONFIG_PACKAGE_luci-app-nlbwmon=y"
-            echo "CONFIG_PACKAGE_luci-app-banip=y"
-            echo "CONFIG_PACKAGE_luci-app-upnp=y"
-            echo "CONFIG_PACKAGE_luci-app-unbound=y"
-            echo "CONFIG_PACKAGE_luci-app-access-control=y"
-            echo "CONFIG_PACKAGE_luci-app-timecontrol=y"
-            echo "CONFIG_PACKAGE_luci-app-attendedsysupgrade=y"
-            echo "CONFIG_PACKAGE_luci-app-https-dns-proxy=y"
-            echo "CONFIG_PACKAGE_luci-app-vlan-viz=y"
             echo "CONFIG_PACKAGE_kmod-usb-storage=y"
             echo "CONFIG_PACKAGE_kmod-fs-ext4=y"
-            echo "CONFIG_PACKAGE_e2fsprogs=y"
-            echo "CONFIG_PACKAGE_parted=y"
-            echo "CONFIG_PACKAGE_resize2fs=y"
-            echo "CONFIG_PACKAGE_htop=y"
-            echo "CONFIG_PACKAGE_nano=y"
-            echo "CONFIG_PACKAGE_bash=y"
-            echo "CONFIG_PACKAGE_curl=y"
-            echo "CONFIG_PACKAGE_bind-client=y"
-            echo "CONFIG_PACKAGE_avahi-dbus-daemon=y"
-            echo "CONFIG_PACKAGE_collectd-mod-cpu=y"
-            echo "CONFIG_PACKAGE_collectd-mod-interface=y"
-            echo "CONFIG_PACKAGE_collectd-mod-memory=y"
-            echo "CONFIG_PACKAGE_collectd-mod-ping=y"
           } >> .config
 
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
-          make -j2 V=s
+          make -j$(nproc) V=s
 
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-Full-SD
+          name: WatchGuard-T30-Lite-SD
           path: bin/targets/mpc85xx/p1020/
