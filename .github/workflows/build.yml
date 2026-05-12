@@ -1,4 +1,4 @@
-name: Build WatchGuard T30 - P1020 FIX
+name: Build WatchGuard T30 - P1020 Corrected
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
 
       - name: Configure and Build
         run: |
-          # Χρησιμοποιούμε το δικό σου config ως βάση, αλλάζοντας το target σε p1020
+          # Εδώ είναι η διόρθωση της αναντιστοιχίας: p1020 αντί για p1010
           printf 'CONFIG_TARGET_mpc85xx=y\n\
           CONFIG_TARGET_mpc85xx_p1020=y\n\
           CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y\n\
@@ -39,28 +39,23 @@ jobs:
           CONFIG_PACKAGE_kmod-wireguard=y\n\
           CONFIG_PACKAGE_luci-app-pbr=y\n\
           CONFIG_PACKAGE_luci-app-openvpn=y\n\
-          CONFIG_PACKAGE_luci-app-adblock=y\n\
           CONFIG_PACKAGE_luci-app-sqm=y\n\
-          CONFIG_PACKAGE_luci-app-nlbwmon=y\n\
           CONFIG_PACKAGE_luci-app-statistics=y\n\
+          CONFIG_PACKAGE_luci-app-diskman=y\n\
           CONFIG_PACKAGE_kmod-usb-storage=y\n\
           CONFIG_PACKAGE_kmod-fs-ext4=y\n\
-          CONFIG_PACKAGE_parted=y\n\
-          CONFIG_PACKAGE_resize2fs=y\n\
-          CONFIG_PACKAGE_e2fsprogs=y\n\
           CONFIG_PACKAGE_htop=y\n\
-          CONFIG_PACKAGE_bash=y\n\
           CONFIG_PACKAGE_curl=y\n\
           CONFIG_TARGET_ROOTFS_PARTSIZE=7500' > .config
           
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
-          # Χρήση όλων των πυρήνων (-j$(nproc)) για να μην μας κόψει το GitHub
+          # Χρήση j2 για σταθερότητα και ταχύτητα
           make -j$(nproc) V=s
 
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: OpenWRT-T30-P1020-Firmware
-          path: bin/targets/mpc85xx/p1020/*
+          name: WatchGuard-T30-P1020-Final
+          path: bin/targets/mpc85xx/p1020/
