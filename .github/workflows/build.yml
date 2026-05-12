@@ -1,4 +1,4 @@
-name: Build WatchGuard T30 FAST-STRIP
+name: Build WatchGuard T30 - SDK RAPID
 
 on:
   workflow_dispatch:
@@ -13,23 +13,22 @@ jobs:
           repository: 'dmascord/openwrt'
           ref: 'add-watchguard-t30-w'
 
-      - name: Install Dependencies
+      - name: Download OpenWrt SDK
         run: |
-          sudo apt update
-          sudo apt install -y build-essential clang flex bison g++ gawk gcc-multilib g++-multilib \
-            gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig \
-            python3-dev python3-setuptools
+          # Κατεβάζουμε το επίσημο SDK για τον επεξεργαστή P1020 (PowerPC)
+          wget https://downloads.openwrt.org/releases/23.05.0/targets/mpc85xx/p1020/openwrt-sdk-23.05.0-mpc85xx-p1020_gcc-12.3.0_musl.Linux-x86_64.tar.xz
+          tar xf openwrt-sdk-*.tar.xz
+          mv openwrt-sdk-* sdk
 
-      - name: Update and Install Feeds
+      - name: Inject T30 Support into SDK
         run: |
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
-
-      - name: Strip All Devices Except T30
-        run: |
-          # Διαγράφουμε τα πάντα και κρατάμε μόνο το T30 για ταχύτητα
-          printf "include \$(INCLUDE_DIR)/image.mk\n\n" > target/linux/mpc85xx/image/p1020.mk
-          cat <<'EOF' >> target/linux/mpc85xx/image/p1020.mk
+          # Αντιγράφουμε τα αρχεία του dmascord μέσα στο έτοιμο SDK
+          cp -r target/linux/mpc85xx/files/* sdk/target/linux/mpc85xx/files/ 2>/dev/null || true
+          cp target/linux/mpc85xx/image/p1020.mk sdk/target/linux/mpc85xx/image/ 2>/dev/null || true
+          
+          # Διορθώνουμε το p1020.mk για να βγάλει SD Image
+          printf "include \$(INCLUDE_DIR)/image.mk\n\n" > sdk/target/linux/mpc85xx/image/p1020.mk
+          cat <<'EOF' >> sdk/target/linux/mpc85xx/image/p1020.mk
           define Device/watchguard_firebox-t30
             DEVICE_VENDOR := WatchGuard
             DEVICE_MODEL := Firebox T30
@@ -37,7 +36,7 @@ jobs:
             BOARD_NAME := watchguard,firebox-t30
             DEVICE_DTS := watchguard-firebox-t30
             KERNEL := append-dtb | pad-to 64k | lzma
-            DEVICE_PACKAGES := kmod-usb-storage kmod-fs-ext4 kmod-usb-ohci kmod-usb2 kmod-usb3
+            DEVICE_PACKAGES := kmod-usb-storage kmod-fs-ext4
             IMAGES := factory.img.gz
             IMAGE/factory.img.gz := append-kernel | pad-to 128k | append-rootfs | pad-rootfs | check-size
           endef
@@ -45,30 +44,16 @@ jobs:
           $(eval $(call BuildImage))
           EOF
 
-      - name: Minimal Configure and Build
+      - name: Rapid Image Generation
         run: |
-          echo "CONFIG_TARGET_mpc85xx=y" > .config
-          echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
-          echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
-          echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
-          echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
-          echo "CONFIG_TARGET_ROOTFS_PARTSIZE=500" >> .config
-
-          {
-            echo "CONFIG_PACKAGE_luci=y"
-            echo "CONFIG_PACKAGE_luci-ssl=y"
-            echo "CONFIG_PACKAGE_luci-i18n-base-el=y"
-            echo "CONFIG_PACKAGE_kmod-usb-storage=y"
-            echo "CONFIG_PACKAGE_kmod-fs-ext4=y"
-          } >> .config
-
+          cd sdk
           make defconfig
-          export FORCE_UNSAFE_CONFIGURE=1
-          make -j$(nproc) V=s
+          # Ζητάμε ΜΟΝΟ την παραγωγή του image για τη συγκεκριμένη συσκευή
+          make target/linux/install-images SET_RETURN_CODE=1 V=s
 
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-Lite-SD
-          path: bin/targets/mpc85xx/p1020/
+          name: WatchGuard-T30-SDK-Image
+          path: sdk/bin/targets/mpc85xx/p1020/
