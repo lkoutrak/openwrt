@@ -28,7 +28,6 @@ jobs:
       - name: Force Device Registration
         run: |
           # Διορθώνουμε το Makefile της αρχιτεκτονικής P1020 για να περιλαμβάνει το T30
-          # Αυτή είναι η κρίσιμη κίνηση για να εμφανιστεί το .img.gz στο bin/
           mkdir -p target/linux/mpc85xx/image/
           cat <<'EOF' > target/linux/mpc85xx/image/p1020.mk
           include $(INCLUDE_DIR)/image.mk
@@ -49,7 +48,7 @@ jobs:
 
       - name: Configure and Fast Build
         run: |
-          # Χρησιμοποιούμε το CONFIG σου αλλά με P1020
+          # Χρήση του CONFIG-οδηγού σου αλλά για P1020
           printf 'CONFIG_TARGET_mpc85xx=y\n\
           CONFIG_TARGET_mpc85xx_p1020=y\n\
           CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y\n\
