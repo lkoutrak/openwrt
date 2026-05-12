@@ -1,4 +1,4 @@
-name: Build WatchGuard T30 - P1020 FINAL FIX
+name: WatchGuard T30 - P1020 LIGHT SPEED
 
 on:
   workflow_dispatch:
@@ -25,46 +25,25 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Repair P1020 Makefile (PR 4697 Alignment)
+      - name: Minimal Config for P1020
         run: |
-          # Ο dmascord στο PR 4697 άλλαξε τη δομή. Εμείς την επιβάλλουμε τώρα:
-          # Διαγράφουμε το υπάρχον και φτιάχνουμε το σωστό p1020.mk
-          printf "include \$(INCLUDE_DIR)/image.mk\n\n" > target/linux/mpc85xx/image/p1020.mk
-          cat <<'EOF' >> target/linux/mpc85xx/image/p1020.mk
-          define Device/watchguard_firebox-t30
-            DEVICE_VENDOR := WatchGuard
-            DEVICE_MODEL := Firebox T30
-            DEVICE_VARIANT := T30-W
-            BOARD_NAME := watchguard,firebox-t30
-            DEVICE_DTS := watchguard-firebox-t30
-            KERNEL := append-dtb | pad-to 64k | lzma
-            DEVICE_PACKAGES := kmod-usb-storage kmod-fs-ext4 kmod-usb-ohci kmod-usb2 kmod-usb3
-            IMAGES := factory.img.gz
-            IMAGE/factory.img.gz := append-kernel | pad-to 128k | append-rootfs | pad-rootfs | check-size
-          endef
-          TARGET_DEVICES += watchguard_firebox-t30
-          $(eval $(call BuildImage))
-          EOF
-
-      - name: Configure and Build
-        run: |
-          # Χρησιμοποιούμε το CONFIG που ξέρουμε ότι δουλεύει
-          printf 'CONFIG_TARGET_mpc85xx=y\n\
-          CONFIG_TARGET_mpc85xx_p1020=y\n\
-          CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y\n\
-          CONFIG_PACKAGE_luci=y\n\
-          CONFIG_PACKAGE_luci-ssl=y\n\
-          CONFIG_PACKAGE_kmod-usb-storage=y\n\
-          CONFIG_PACKAGE_kmod-fs-ext4=y\n\
-          CONFIG_TARGET_ROOTFS_PARTSIZE=7500' > .config
+          # Μόνο τα απολύτως απαραίτητα για να βγει το image γρήγορα
+          echo "CONFIG_TARGET_mpc85xx=y" > .config
+          echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
+          echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
+          echo "CONFIG_TARGET_ROOTFS_SQUASHFS=y" >> .config
+          echo "CONFIG_TARGET_IMAGES_GZIP=y" >> .config
+          echo "CONFIG_PACKAGE_luci=y" >> .config
+          echo "CONFIG_PACKAGE_luci-ssl=y" >> .config
           
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
+          # Χρήση j4 (αν το επιτρέπει ο runner) για μέγιστη ταχύτητα
           make -j$(nproc) V=s
 
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-P1020-REPAIRED
+          name: WatchGuard-T30-Speed-Build
           path: bin/targets/mpc85xx/p1020/
