@@ -19,6 +19,11 @@ jobs:
             gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig \
             python3-dev python3-setuptools python3 python-is-python3
 
+      - name: Fix Python Path
+        run: |
+          sudo ln -sf /usr/bin/python3 /usr/bin/python
+          python --version
+
       - name: Update and Install Feeds
         run: |
           ./scripts/feeds update -a
