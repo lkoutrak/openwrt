@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04  # ΚΡΙΣΙΜΟ: Επιστροφή στην έκδοση που παίζει "αέρα"
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -19,9 +19,18 @@ jobs:
             gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig \
             python3-dev python3-setuptools python3 python-is-python3
 
-      - name: Fix Python Link
+      - name: Fix Python Path for Ubuntu 22.04
         run: |
-          sudo ln -sf /usr/bin/python3 /usr/bin/python
+          # Δημιουργούμε έναν τοπικό κατάλογο για τα εκτελέσιμα
+          mkdir -p $HOME/.local/bin
+          # Συνδέουμε την python3 στο όνομα "python" που ψάχνει απεγνωσμένα το OpenWRT
+          ln -sf /usr/bin/python3 $HOME/.local/bin/python
+          ln -sf /usr/bin/python3 $HOME/.local/bin/python3
+          # Προσθέτουμε τον κατάλογο στην αρχή του PATH του GitHub Runner
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          # Εξαναγκάζουμε το τρέχον shell να το δει
+          export PATH="$HOME/.local/bin:$PATH"
+          echo "Python version detected:"
           python --version
 
       - name: Update and Install Feeds
