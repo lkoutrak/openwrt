@@ -1,4 +1,4 @@
-name: WatchGuard T30 - P1020 FINAL STAND
+name: Build WatchGuard T30 - P1020 FINAL
 
 on:
   workflow_dispatch:
@@ -7,65 +7,81 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Official OpenWrt
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          repository: 'openwrt/openwrt'
-          ref: 'v23.05.0'
+          ref: 'master' # Βεβαιώσου ότι εδώ είναι το branch που έχει τα νέα scripts και το p1020.mk
 
-      - name: Create WatchGuard DTS
+      - name: Install Dependencies
         run: |
-          # Δημιουργούμε το DTS χειροκίνητα για να αποφύγουμε το 404 της 1000012644.jpg
-          mkdir -p target/linux/mpc85xx/files/arch/powerpc/boot/dts/
-          cat <<'EOF' > target/linux/mpc85xx/files/arch/powerpc/boot/dts/watchguard-firebox-t30.dts
-          /dts-v1/;
-          /include/ "p1020si-pre.dtsi"
-          / {
-            model = "WatchGuard Firebox T30";
-            compatible = "watchguard,firebox-t30", "fsl,P1020";
-          };
-          &soc {
-            /* Εδώ μπαίνουν οι ορισμοί για ethernet/leds */
-          };
-          /include/ "p1020si-post.dtsi"
-          EOF
+          sudo apt update
+          sudo apt install -y build-essential clang flex bison g++ gawk gcc-multilib g++-multilib \
+            gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig \
+            python3-dev python3-setuptools
 
-      - name: Setup T30 Target
+      - name: Update and Install Feeds
         run: |
-          # Ορίζουμε τη συσκευή στο σωστό Makefile
-          printf "include \$(INCLUDE_DIR)/image.mk\n\n" > target/linux/mpc85xx/image/p1020.mk
-          cat <<'EOF' >> target/linux/mpc85xx/image/p1020.mk
-          define Device/watchguard_firebox-t30
-            DEVICE_VENDOR := WatchGuard
-            DEVICE_MODEL := Firebox T30
-            DEVICE_DTS := watchguard-firebox-t30
-            KERNEL := append-dtb | pad-to 64k | lzma
-            IMAGES := factory.img.gz
-            IMAGE/factory.img.gz := append-kernel | pad-to 128k | append-rootfs | pad-rootfs | check-size
-          endef
-          TARGET_DEVICES += watchguard_firebox-t30
-          $(eval $(call BuildImage))
-          EOF
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Make scripts executable
+        run: chmod +x scripts/make_watchguard_t30w_*.sh
 
       - name: Configure and Build
         run: |
-          sudo apt update && sudo apt install -y build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig device-tree-compiler
-          
-          ./scripts/feeds update -a && ./scripts/feeds install -a
-          
-          echo "CONFIG_TARGET_mpc85xx=y" > .config
-          echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config
-          echo "CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config
-          echo "CONFIG_PACKAGE_luci=y" >> .config
-          
+          printf 'CONFIG_TARGET_mpc85xx=y\n\
+          CONFIG_TARGET_mpc85xx_p1020=y\n\
+          CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y\n\
+          CONFIG_PACKAGE_luci=y\n\
+          CONFIG_PACKAGE_luci-ssl=y\n\
+          CONFIG_PACKAGE_luci-i18n-base-el=y\n\
+          CONFIG_PACKAGE_luci-i18n-firewall-el=y\n\
+          CONFIG_PACKAGE_luci-app-wireguard=y\n\
+          CONFIG_PACKAGE_kmod-wireguard=y\n\
+          CONFIG_PACKAGE_luci-app-pbr=y\n\
+          CONFIG_PACKAGE_luci-app-openvpn=y\n\
+          CONFIG_PACKAGE_luci-app-adblock=y\n\
+          CONFIG_PACKAGE_luci-i18n-adblock-el=y\n\
+          CONFIG_PACKAGE_luci-app-https-dns-proxy=y\n\
+          CONFIG_PACKAGE_bind-client=y\n\
+          CONFIG_PACKAGE_luci-app-timecontrol=y\n\
+          CONFIG_PACKAGE_luci-app-access-control=y\n\
+          CONFIG_PACKAGE_luci-app-sqm=y\n\
+          CONFIG_PACKAGE_luci-i18n-sqm-el=y\n\
+          CONFIG_PACKAGE_luci-app-banip=y\n\
+          CONFIG_PACKAGE_luci-app-unbound=y\n\
+          CONFIG_PACKAGE_netdata=y\n\
+          CONFIG_PACKAGE_luci-app-nlbwmon=y\n\
+          CONFIG_PACKAGE_luci-app-statistics=y\n\
+          CONFIG_PACKAGE_luci-i18n-statistics-el=y\n\
+          CONFIG_PACKAGE_collectd-mod-cpu=y\n\
+          CONFIG_PACKAGE_collectd-mod-interface=y\n\
+          CONFIG_PACKAGE_collectd-mod-memory=y\n\
+          CONFIG_PACKAGE_collectd-mod-ping=y\n\
+          CONFIG_PACKAGE_avahi-dbus-daemon=y\n\
+          CONFIG_PACKAGE_luci-app-vlan-viz=y\n\
+          CONFIG_PACKAGE_luci-app-upnp=y\n\
+          CONFIG_PACKAGE_luci-app-attendedsysupgrade=y\n\
+          CONFIG_PACKAGE_luci-app-diskman=y\n\
+          CONFIG_PACKAGE_kmod-usb-storage=y\n\
+          CONFIG_PACKAGE_kmod-fs-ext4=y\n\
+          CONFIG_PACKAGE_parted=y\n\
+          CONFIG_PACKAGE_resize2fs=y\n\
+          CONFIG_PACKAGE_e2fsprogs=y\n\
+          CONFIG_PACKAGE_htop=y\n\
+          CONFIG_PACKAGE_nano=y\n\
+          CONFIG_PACKAGE_bash=y\n\
+          CONFIG_PACKAGE_curl=y\n\
+          CONFIG_PACKAGE_ttyd=y\n\
+          CONFIG_PACKAGE_luci-app-ttyd=y\n\
+          CONFIG_TARGET_ROOTFS_PARTSIZE=7500' > .config
+
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
-          # Χτίζουμε μόνο τα απαραίτητα για να βγει το image
-          make target/linux/install -j$(nproc) V=s
+          make -j$(nproc) V=s
 
       - name: Upload Artifacts
-        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-Standard-Build
-          path: bin/targets/mpc85xx/p1020/
+          name: WatchGuard-T30-P1020-Final-Firmware
+          path: bin/targets/mpc85xx/p1020/*
