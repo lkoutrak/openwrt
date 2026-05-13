@@ -1,4 +1,4 @@
-name: Build WatchGuard T30 - Damien Source P1020
+name: Build WatchGuard T30
 
 on:
   workflow_dispatch:
@@ -10,9 +10,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          # Χρησιμοποιούμε το repository και το branch του Damien
-          repository: lkoutrak/openwrt 
-          ref: 'add-watchguard-t30-w'
+          ref: 'master'
 
       - name: Install Dependencies
         run: |
@@ -21,29 +19,47 @@ jobs:
             gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig \
             python3-dev python3-setuptools python-is-python3
 
+      - name: Fix Python Command
+        run: |
+          sudo ln -sf /usr/bin/python3 /usr/bin/python
+
       - name: Update and Install Feeds
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
+      - name: Make scripts executable
+        run: chmod +x scripts/make_watchguard_t30w_*.sh
+
       - name: Configure and Build
         run: |
-          # Ρύθμιση για P1020 (το δικό σου WatchGuard)
           printf 'CONFIG_TARGET_mpc85xx=y\n\
           CONFIG_TARGET_mpc85xx_p1020=y\n\
           CONFIG_TARGET_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y\n\
           CONFIG_PACKAGE_luci=y\n\
           CONFIG_PACKAGE_luci-ssl=y\n\
-          CONFIG_PACKAGE_luci-i18n-base-el=y\n\
+          CONFIG_PACKAGE_openssh-server=y\n\
+          CONFIG_PACKAGE_ttyd=y\n\
+          CONFIG_PACKAGE_luci-app-ttyd=y\n\
+          CONFIG_PACKAGE_luci-app-statistics=y\n\
+          CONFIG_PACKAGE_luci-app-diskman=y\n\
+          CONFIG_PACKAGE_luci-app-upnp=y\n\
+          CONFIG_PACKAGE_luci-app-wol=y\n\
+          CONFIG_PACKAGE_luci-app-adblock=y\n\
           CONFIG_PACKAGE_luci-app-wireguard=y\n\
           CONFIG_PACKAGE_kmod-wireguard=y\n\
-          CONFIG_PACKAGE_luci-app-adblock=y\n\
-          CONFIG_PACKAGE_luci-app-sqm=y\n\
           CONFIG_PACKAGE_htop=y\n\
-          CONFIG_PACKAGE_bash=y\n\
+          CONFIG_PACKAGE_nano=y\n\
           CONFIG_PACKAGE_curl=y\n\
+          CONFIG_PACKAGE_bash=y\n\
           CONFIG_PACKAGE_kmod-usb-storage=y\n\
           CONFIG_PACKAGE_kmod-fs-ext4=y\n\
+          CONFIG_PACKAGE_parted=y\n\
+          CONFIG_PACKAGE_resize2fs=y\n\
+          CONFIG_PACKAGE_tune2fs=y\n\
+          CONFIG_PACKAGE_e2fsprogs=y\n\
+          CONFIG_PACKAGE_lsblk=y\n\
+          CONFIG_PACKAGE_blkid=y\n\
           CONFIG_TARGET_ROOTFS_PARTSIZE=7500' > .config
           
           make defconfig
@@ -54,5 +70,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: WatchGuard-T30-P1020-Firmware
-          # Το path δείχνει πλέον στον φάκελο p1020
           path: bin/targets/mpc85xx/p1020/*
