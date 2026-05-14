@@ -1,8 +1,6 @@
 name: Build WatchGuard T30
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -10,9 +8,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          repository: lkoutrak/openwrt 
+          repository: lkoutrak/openwrt
           ref: 'add-watchguard-t30-w'
-
       - name: Install Dependencies
         run: |
           sudo apt update
@@ -20,44 +17,58 @@ jobs:
             gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev swig \
             python3-dev python3-setuptools python3 python-is-python3
           sudo ln -sf /usr/bin/python3 /usr/bin/python
-
       - name: Update and Install Feeds
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-
       - name: Configure and Build
         run: |
           echo "CONFIG_TARGET_mpc85xx=y" > .config
           echo "CONFIG_TARGET_mpc85xx_p1010=y" >> .config
           echo "CONFIG_TARGET_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y" >> .config
-          echo "CONFIG_SMP=y" >> .config
-          echo "CONFIG_NR_CPUS=2" >> .config
           echo "CONFIG_PACKAGE_luci=y" >> .config
           echo "CONFIG_PACKAGE_luci-ssl=y" >> .config
           echo "CONFIG_PACKAGE_openssh-server=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-ttyd=y" >> .config
           echo "CONFIG_PACKAGE_ttyd=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-ttyd=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-statistics=y" >> .config
+          echo "CONFIG_PACKAGE_collectd-mod-cpu=y" >> .config
+          echo "CONFIG_PACKAGE_collectd-mod-memory=y" >> .config
+          echo "CONFIG_PACKAGE_collectd-mod-interface=y" >> .config
+          echo "CONFIG_PACKAGE_collectd-mod-thermal=y" >> .config
+          echo "CONFIG_PACKAGE_netdata=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-diskman=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-upnp=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-wol=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-adblock=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-vlan=y" >> .config
+          echo "CONFIG_PACKAGE_avahi-dbus-daemon=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-adguardhome=y" >> .config
+          echo "CONFIG_PACKAGE_https-dns-proxy=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-banip=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-simple-adblock=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-access-control=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-wireguard=y" >> .config
           echo "CONFIG_PACKAGE_kmod-wireguard=y" >> .config
           echo "CONFIG_PACKAGE_htop=y" >> .config
           echo "CONFIG_PACKAGE_nano=y" >> .config
           echo "CONFIG_PACKAGE_curl=y" >> .config
           echo "CONFIG_PACKAGE_bash=y" >> .config
+          echo "CONFIG_PACKAGE_iperf3=y" >> .config
+          echo "CONFIG_PACKAGE_block-mount=y" >> .config
           echo "CONFIG_PACKAGE_kmod-usb-storage=y" >> .config
           echo "CONFIG_PACKAGE_kmod-fs-ext4=y" >> .config
+          echo "CONFIG_PACKAGE_parted=y" >> .config
+          echo "CONFIG_PACKAGE_resize2fs=y" >> .config
+          echo "CONFIG_PACKAGE_tune2fs=y" >> .config
+          echo "CONFIG_PACKAGE_e2fsprogs=y" >> .config
+          echo "CONFIG_PACKAGE_lsblk=y" >> .config
+          echo "CONFIG_PACKAGE_blkid=y" >> .config
           echo "CONFIG_TARGET_ROOTFS_PARTSIZE=7500" >> .config
           make defconfig
           export FORCE_UNSAFE_CONFIGURE=1
           make -j$(nproc) V=s
-
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: WatchGuard-T30-Full-SMP
+          name: WatchGuard-T30-Firmware
           path: bin/targets/mpc85xx/p1010/*
