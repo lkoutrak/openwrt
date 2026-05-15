@@ -34,6 +34,10 @@ jobs:
           echo "CONFIG_PACKAGE_luci=y" >> .config
           echo "CONFIG_PACKAGE_luci-ssl=y" >> .config
           echo "CONFIG_PACKAGE_openssh-server=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-mv88e6085=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-mii=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-libphy=y" >> .config
+          echo "CONFIG_PACKAGE_kmod-swconfig=y" >> .config
           echo "CONFIG_PACKAGE_ttyd=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-ttyd=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-statistics=y" >> .config
@@ -61,4 +65,3 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: WatchGuard-T30-Firmware
-          path: bin/targets/mpc85xx/p1010/*
