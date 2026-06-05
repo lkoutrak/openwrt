@@ -27,8 +27,8 @@ jobs:
       - name: Configure and Build        
         run: |          
           echo "CONFIG_TARGET_mpc85xx=y" > .config          
-          echo "CONFIG_TARGET_mpc85xx_p1020=y" >> .config          
-          echo "CONFIG_TARGET_DEVICE_mpc85xx_p1020_DEVICE_watchguard_firebox-t30=y" >> .config          
+          echo "CONFIG_TARGET_mpc85xx_p1010=y" >> .config          
+          echo "CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y" >> .config          
           
           echo "CONFIG_PACKAGE_luci=y" >> .config          
           echo "CONFIG_PACKAGE_luci-ssl=y" >> .config          
@@ -70,10 +70,10 @@ jobs:
           make download -j$(nproc)          
           
           export FORCE_UNSAFE_CONFIGURE=1          
-          make -j$(nproc) V=s TARGET_DEVICE=watchguard_firebox-t30
+          make -j$(nproc) V=s mpc85xx/p1010/images DEVICE_watchguard_firebox-t30
 
       - name: Upload Artifacts        
         uses: actions/upload-artifact@v4        
         with:          
           name: WatchGuard-T30-Firmware          
-          path: bin/targets/mpc85xx/p1020/
+          path: bin/targets/mpc85xx/p1010/watchguard_firebox-t30*
