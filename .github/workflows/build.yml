@@ -78,4 +78,4 @@ jobs:
         uses: actions/upload-artifact@v4        
         with:          
           name: WatchGuard-T30-Firmware          
-          path: bin/targets/mpc85xx/p1010/watchguard_firebox-t30*
+          path: bin/targets/mpc85xx/p1010/
