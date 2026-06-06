@@ -79,7 +79,9 @@ jobs:
           make defconfig          
           make download -j$(nproc)          
           export FORCE_UNSAFE_CONFIGURE=1          
-          make -j$(nproc) V=s PROFILE=watchguard_firebox-t30
+          
+          # Η απόλυτη διόρθωση για το Race Condition:
+          make -j$(nproc) PROFILE=watchguard_firebox-t30 || make -j1 V=s PROFILE=watchguard_firebox-t30
 
       - name: Upload Artifacts        
         uses: actions/upload-artifact@v4        
