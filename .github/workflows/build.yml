@@ -29,29 +29,21 @@ jobs:
           echo "CONFIG_TARGET_mpc85xx=y" > .config          
           echo "CONFIG_TARGET_mpc85xx_p1010=y" >> .config          
           echo "CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y" >> .config          
-          
-          # Βασικά & Δίκτυο
           echo "CONFIG_PACKAGE_luci=y" >> .config          
           echo "CONFIG_PACKAGE_luci-ssl=y" >> .config          
           echo "CONFIG_PACKAGE_kmod-mv88e6085=y" >> .config          
           echo "CONFIG_PACKAGE_kmod-swconfig=y" >> .config          
           echo "CONFIG_PACKAGE_ttyd=y" >> .config          
           echo "CONFIG_PACKAGE_luci-app-ttyd=y" >> .config          
-          
-          # VPN & Routing (WireGuard + PBR + OpenVPN)
           echo "CONFIG_PACKAGE_kmod-wireguard=y" >> .config          
           echo "CONFIG_PACKAGE_luci-app-wireguard=y" >> .config          
           echo "CONFIG_PACKAGE_luci-app-pbr=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-openvpn=y" >> .config
           echo "CONFIG_PACKAGE_openvpn-openssl=y" >> .config
-          
-          # Ασφάλεια & Φιλτράρισμα
           echo "CONFIG_PACKAGE_luci-app-adblock-fast=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-adblock=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-banip=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-sqm=y" >> .config
-          
-          # Παρακολούθηση & Εργαλεία Δικτύου
           echo "CONFIG_PACKAGE_luci-app-nlbwmon=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-vnstat=y" >> .config
           echo "CONFIG_PACKAGE_luci-app-statistics=y" >> .config          
@@ -60,11 +52,7 @@ jobs:
           echo "CONFIG_PACKAGE_bash=y" >> .config          
           echo "CONFIG_PACKAGE_tcpdump=y" >> .config
           echo "CONFIG_PACKAGE_ip-full=y" >> .config
-          
-          # VLAN Support
           echo "CONFIG_PACKAGE_kmod-8021q=y" >> .config
-          
-          # Δίσκοι (Extroot)
           echo "CONFIG_PACKAGE_kmod-usb-storage=y" >> .config          
           echo "CONFIG_PACKAGE_kmod-fs-ext4=y" >> .config          
           echo "CONFIG_PACKAGE_parted=y" >> .config          
@@ -73,14 +61,10 @@ jobs:
           echo "CONFIG_PACKAGE_lsblk=y" >> .config          
           echo "CONFIG_PACKAGE_blkid=y" >> .config          
           echo "CONFIG_PACKAGE_block-mount=y" >> .config
-          
           echo "CONFIG_TARGET_ROOTFS_PARTSIZE=500" >> .config          
-          
           make defconfig          
           make download -j$(nproc)          
           export FORCE_UNSAFE_CONFIGURE=1          
-          
-          # Η απόλυτη διόρθωση για το Race Condition:
           make -j$(nproc) PROFILE=watchguard_firebox-t30 || make -j1 V=s PROFILE=watchguard_firebox-t30
 
       - name: Upload Artifacts        
