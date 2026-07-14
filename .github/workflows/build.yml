@@ -7,7 +7,7 @@ jobs:
   build:    
     runs-on: ubuntu-22.04    
     steps:      
-      - name: Checkout Code        
+      - name: Checkout Code      
         uses: actions/checkout@v4        
         with:          
           repository: dmascord/openwrt          
@@ -65,6 +65,8 @@ jobs:
           make defconfig          
           make download -j$(nproc)          
           export FORCE_UNSAFE_CONFIGURE=1          
+          
+          # ΣΗΜΕΙΩΣΗ: Αν θες να χτίσεις με τον kernel 6.18, άλλαξε την παρακάτω γραμμή προσθέτοντας KERNEL_PATCHVER=6.18
           make -j$(nproc) PROFILE=watchguard_firebox-t30 || make -j1 V=s PROFILE=watchguard_firebox-t30
 
       - name: Upload Artifacts        
