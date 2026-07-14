@@ -11,7 +11,8 @@ jobs:
         uses: actions/checkout@v4        
         with:          
           repository: dmascord/openwrt          
-          ref: '8b9a7a9f604b901509311df9dbe92095f9c54641'      
+          ref: 'add-watchguard-t30-w'
+          fetch-depth: 0
 
       - name: Install Dependencies        
         run: |          
