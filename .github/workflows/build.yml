@@ -64,9 +64,6 @@ jobs:
           echo "CONFIG_PACKAGE_block-mount=y" >> .config
           echo "CONFIG_TARGET_ROOTFS_PARTSIZE=500" >> .config          
           
-          # ΑΥΤΗ Η ΓΡΑΜΜΗ ΣΩΖΕΙ ΤΗΝ ΚΑΤΑΣΤΑΣΗ:
-          echo "CONFIG_TARGET_IMAGES_GENTARGET_GPT=n" >> .config
-          
           make defconfig          
           make download -j$(nproc)          
           export FORCE_UNSAFE_CONFIGURE=1          
