@@ -30,11 +30,12 @@ jobs:
           # 1. Καθαρισμός παλαιών ρυθμίσεων
           rm -f .config
 
-          # 2. Στόχευση αποκλειστικά στο WatchGuard T30-W
+          # 2. Στόχευση αποκλειστικά στο WatchGuard T30 / T30-W
           echo "CONFIG_TARGET_mpc85xx=y" > .config
           echo "CONFIG_TARGET_mpc85xx_p1010=y" >> .config
           echo "CONFIG_TARGET_ALL_PROFILES=n" >> .config
           echo "CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y" >> .config
+          echo "CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30-w=y" >> .config
 
           # 3. Βασικά πακέτα διεπαφής και drivers
           echo "CONFIG_PACKAGE_luci=y" >> .config
@@ -45,9 +46,9 @@ jobs:
           make defconfig
           make download -j$(nproc)
 
-          # 5. Εκτέλεση μεταγλώττισης (Build)
+          # 5. Εκτέλεση μεταγλώττισης (Build) χωρίς την παράμετρο PROFILE
           export FORCE_UNSAFE_CONFIGURE=1
-          make -j$(nproc) PROFILE=watchguard_firebox-t30 V=s
+          make -j$(nproc) V=s
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
