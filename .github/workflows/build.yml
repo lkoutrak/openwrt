@@ -7,16 +7,11 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Repository Base
+      - name: Checkout T30 Branch
         uses: actions/checkout@v4
         with:
           repository: dmascord/openwrt
-          fetch-depth: 0
-
-      - name: Fetch and Checkout Commit 6d74cdb
-        run: |
-          git fetch origin 6d74cdb
-          git checkout FETCH_HEAD
+          ref: 'add-watchguard-t30-w'
 
       - name: Install Dependencies
         run: |
