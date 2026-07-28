@@ -7,16 +7,12 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Code
+      - name: Checkout Verified T30 Commit
         uses: actions/checkout@v4
         with:
           repository: dmascord/openwrt
-          ref: 'add-watchguard-t30-w'
+          ref: '6d74cdb'
           fetch-depth: 0
-
-      - name: Inject T30 Support
-        run: |
-          printf '\ndefine Device/watchguard_firebox-t30\n  DEVICE_VENDOR := Watchguard\n  DEVICE_MODEL := Firebox T30\n  DEVICE_ALT0_VENDOR := Watchguard\n  DEVICE_ALT0_MODEL := Firebox T30-W\n  DEVICE_PACKAGES := kmod-rtc-s35390a kmod-eeprom-at24\n  KERNEL = kernel-bin | libdeflate-gzip | fit gzip $(KDIR)/image-$$(DEVICE_DTS).dtb\n  KERNEL_NAME := zImage.la3000000\n  KERNEL_ENTRY := 0x3000000\n  KERNEL_LOADADDR := 0x3000000\n  IMAGES := sysupgrade.bin factory.img.gz\n  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata\n  IMAGE/factory.img.gz := boot-script | gzip\nendef\nTARGET_DEVICES += watchguard_firebox-t30\n' >> target/linux/mpc85xx/image/p1010.mk
 
       - name: Install Dependencies
         run: |
