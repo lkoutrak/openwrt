@@ -14,6 +14,28 @@ jobs:
           ref: 'add-watchguard-t30-w'
           fetch-depth: 0
 
+      - name: Inject T30 Factory Image Support
+        run: |
+          # Προσθήκη του WatchGuard T30 με υποστήριξη Factory Image στο p1010.mk
+          cat << 'EOF' >> target/linux/mpc85xx/image/p1010.mk
+
+define Device/watchguard_firebox-t30
+  DEVICE_VENDOR := Watchguard
+  DEVICE_MODEL := Firebox T30
+  DEVICE_ALT0_VENDOR := Watchguard
+  DEVICE_ALT0_MODEL := Firebox T30-W
+  DEVICE_PACKAGES := kmod-rtc-s35390a kmod-eeprom-at24
+  KERNEL = kernel-bin | libdeflate-gzip | fit gzip $(KDIR)/image-$$(DEVICE_DTS).dtb
+  KERNEL_NAME := zImage.la3000000
+  KERNEL_ENTRY := 0x3000000
+  KERNEL_LOADADDR := 0x3000000
+  IMAGES := sysupgrade.bin factory.img.gz
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE/factory.img.gz := boot-script | gzip
+endef
+TARGET_DEVICES += watchguard_firebox-t30
+EOF
+
       - name: Install Dependencies
         run: |
           sudo apt update
@@ -27,28 +49,18 @@ jobs:
 
       - name: Configure and Build
         run: |
-          # 1. Καθαρισμός παλαιών ρυθμίσεων
           rm -f .config
-
-          # 2. Στόχευση αποκλειστικά στο WatchGuard T30 / T30-W
           echo "CONFIG_TARGET_mpc85xx=y" > .config
           echo "CONFIG_TARGET_mpc85xx_p1010=y" >> .config
           echo "CONFIG_TARGET_ALL_PROFILES=n" >> .config
           echo "CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y" >> .config
-          echo "CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30-w=y" >> .config
-
-          # 3. Βασικά πακέτα διεπαφής και drivers
           echo "CONFIG_PACKAGE_luci=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-mv88e6085=y" >> .config
-          echo "CONFIG_PACKAGE_kmod-swconfig=y" >> .config
 
-          # 4. Υπολογισμός εξαρτήσεων και λήψη πηγαίου κώδικα
           make defconfig
           make download -j$(nproc)
 
-          # 5. Εκτέλεση μεταγλώττισης (Build) χωρίς την παράμετρο PROFILE
           export FORCE_UNSAFE_CONFIGURE=1
-          make -j$(nproc) V=s
+          make -j$(nproc) PROFILE=watchguard_firebox-t30 V=s
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
