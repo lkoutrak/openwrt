@@ -14,27 +14,9 @@ jobs:
           ref: 'add-watchguard-t30-w'
           fetch-depth: 0
 
-      - name: Inject T30 Factory Image Support
+      - name: Inject T30 Support
         run: |
-          # Προσθήκη του WatchGuard T30 με υποστήριξη Factory Image στο p1010.mk
-          cat << 'EOF' >> target/linux/mpc85xx/image/p1010.mk
-
-define Device/watchguard_firebox-t30
-  DEVICE_VENDOR := Watchguard
-  DEVICE_MODEL := Firebox T30
-  DEVICE_ALT0_VENDOR := Watchguard
-  DEVICE_ALT0_MODEL := Firebox T30-W
-  DEVICE_PACKAGES := kmod-rtc-s35390a kmod-eeprom-at24
-  KERNEL = kernel-bin | libdeflate-gzip | fit gzip $(KDIR)/image-$$(DEVICE_DTS).dtb
-  KERNEL_NAME := zImage.la3000000
-  KERNEL_ENTRY := 0x3000000
-  KERNEL_LOADADDR := 0x3000000
-  IMAGES := sysupgrade.bin factory.img.gz
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  IMAGE/factory.img.gz := boot-script | gzip
-endef
-TARGET_DEVICES += watchguard_firebox-t30
-EOF
+          printf '\ndefine Device/watchguard_firebox-t30\n  DEVICE_VENDOR := Watchguard\n  DEVICE_MODEL := Firebox T30\n  DEVICE_ALT0_VENDOR := Watchguard\n  DEVICE_ALT0_MODEL := Firebox T30-W\n  DEVICE_PACKAGES := kmod-rtc-s35390a kmod-eeprom-at24\n  KERNEL = kernel-bin | libdeflate-gzip | fit gzip $(KDIR)/image-$$(DEVICE_DTS).dtb\n  KERNEL_NAME := zImage.la3000000\n  KERNEL_ENTRY := 0x3000000\n  KERNEL_LOADADDR := 0x3000000\n  IMAGES := sysupgrade.bin factory.img.gz\n  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata\n  IMAGE/factory.img.gz := boot-script | gzip\nendef\nTARGET_DEVICES += watchguard_firebox-t30\n' >> target/linux/mpc85xx/image/p1010.mk
 
       - name: Install Dependencies
         run: |
