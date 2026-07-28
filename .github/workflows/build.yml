@@ -7,11 +7,16 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Verified Commit
+      - name: Checkout Repository Base
         uses: actions/checkout@v4
         with:
           repository: dmascord/openwrt
-          ref: '6d74cdb'
+          fetch-depth: 0
+
+      - name: Fetch and Checkout Commit 6d74cdb
+        run: |
+          git fetch origin 6d74cdb
+          git checkout FETCH_HEAD
 
       - name: Install Dependencies
         run: |
