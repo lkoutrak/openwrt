@@ -26,6 +26,13 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
+      - name: Patch target to remove broken TP-Link profile
+        run: |
+          # Αφαίρεση του block ορισμού της συσκευής tplink_tl-wdr4900-v1 από το p1010.mk
+          sed -i '/define Device\/tplink_tl-wdr4900-v1/,/endef/d' target/linux/mpc85xx/image/p1010.mk
+          # Αφαίρεση τυχόν αναφοράς της συσκευής από τη λίστα TARGET_DEVICES
+          sed -i '/tplink_tl-wdr4900-v1/d' target/linux/mpc85xx/image/p1010.mk
+
       - name: Configure OpenWrt Target
         run: |
           cat << 'EOF' > .config
@@ -40,7 +47,7 @@ jobs:
       - name: Build Firmware
         run: |
           make -j$(nproc) download
-          make -j$(nproc) DEVICE_FILTER="watchguard_firebox-t30" || make -j1 V=s DEVICE_FILTER="watchguard_firebox-t30"
+          make -j$(nproc) || make -j1 V=s
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
