@@ -26,41 +26,55 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Isolate WatchGuard T30-W (Safe Python Patch)
+      - name: Isolate WatchGuard T30-W (Clean Override)
         run: |
-          python3 -c '
-          path = "target/linux/mpc85xx/image/p1010.mk"
-          with open(path, "r") as f:
-              lines = f.readlines()
-          
-          new_lines = []
-          skip = False
-          for line in lines:
-              if "define Device/tplink" in line:
-                  skip = True
-              if skip and "endef" in line:
-                  skip = False
-                  continue
-              if not skip:
-                  new_lines.append(line)
-          
-          with open(path, "w") as f:
-              f.writelines(new_lines)
-          '
+          cat << 'EOF' > target/linux/mpc85xx/image/p1010.mk
+          define Build/watchguard_firebox-t30-bootfs
+          	rm -f $(KDIR)/watchguard_firebox-t30-bootfs.img
+          	TOPDIR=$(TOPDIR) sh $(TOPDIR)/scripts/make_watchguard_t30w_bootfs.sh \
+          		$(STAGING_DIR_HOST)/bin \
+          		$(IMAGE_KERNEL) \
+          		$(KDIR)/image-$(firstword $(DEVICE_DTS)).dtb \
+          		$(KDIR)/watchguard_firebox-t30-bootfs.img
+          endef
 
-      - name: Verify Patch Integrity (Inspection Step)
+          define Build/watchguard_firebox-t30-factory
+          	rm -f $@
+          	TOPDIR=$(TOPDIR) sh $(TOPDIR)/scripts/make_watchguard_t30w_sdimage.sh \
+          		$(STAGING_DIR_HOST)/bin \
+          		$(KDIR)/watchguard_firebox-t30-bootfs.img \
+          		$(IMAGE_ROOTFS) \
+          		$@
+          endef
+
+          define Device/watchguard_firebox-t30
+            DEVICE_VENDOR := Watchguard
+            DEVICE_MODEL := Firebox T30-W
+            DEVICE_ALT0_VENDOR := Watchguard
+            DEVICE_ALT0_MODEL := Firebox T30
+            DEVICE_PACKAGES := ath10k-firmware-qca988x-ct block-mount kmod-fs-ext4 \
+              kmod-ath10k-ct kmod-usb-storage kmod-usb2 \
+              kmod-rtc-s35390a kmod-tpm-i2c-atmel
+            IMAGE_SIZE := 64m
+            FILESYSTEMS := squashfs ext4
+            KERNEL = kernel-bin | uImage none
+            KERNEL_INITRAMFS := kernel-bin | uImage none
+            KERNEL_NAME := zImage.la3000000
+            KERNEL_ENTRY := 0x3000000
+            KERNEL_LOADADDR := 0x3000000
+            IMAGES := factory.img.gz sysupgrade.bin
+            IMAGE/factory.img.gz := watchguard_firebox-t30-bootfs | watchguard_firebox-t30-factory
+            IMAGE/sysupgrade.bin := watchguard_firebox-t30-bootfs | sysupgrade-tar \
+          	kernel=$(KDIR)/watchguard_firebox-t30-bootfs.img | append-metadata | check-size
+          endef
+          TARGET_DEVICES += watchguard_firebox-t30
+          EOF
+
+      - name: Verify Patch Integrity
         run: |
-          echo "=== ΠΕΡΙΕΧΟΜΕΝΑ TARGET FILE (p1010.mk) ==="
+          echo "=== ΝΕΟ ΠΕΡΙΕΧΟΜΕΝΟ p1010.mk ==="
           cat target/linux/mpc85xx/image/p1010.mk
-          echo "========================================="
-          
-          # Έλεγχος αν παρέμεινε το TP-Link
-          if grep -q "tplink" target/linux/mpc85xx/image/p1010.mk; then
-            echo "ERROR: Το TP-Link profile βρίσκεται ακόμα μέσα στο αρχείο!"
-            exit 1
-          else
-            echo "SUCCESS: Το TP-Link αφαιρέθηκε επιτυχώς."
-          fi
+          echo "================================="
 
       - name: Configure OpenWrt Target
         run: |
