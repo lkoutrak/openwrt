@@ -21,10 +21,11 @@ jobs:
             gawk gcc-multilib g++-multilib gettext git libncurses5-dev \
             libssl-dev python3 python3-setuptools rsync unzip zlib1g-dev file wget cmake
 
-      - name: Update and Install Feeds
+      - name: Update Feeds Safely
         run: |
           ./scripts/feeds update -a
-          ./scripts/feeds install -a
+          ./scripts/feeds install -p packages -a
+          ./scripts/feeds install -p luci -a
 
       - name: Isolate WatchGuard T30-W (Clean Override)
         run: |
@@ -56,7 +57,7 @@ jobs:
               kmod-ath10k-ct kmod-usb-storage kmod-usb2 \
               kmod-rtc-s35390a kmod-tpm-i2c-atmel
             IMAGE_SIZE := 64m
-            FILESYSTEMS := squashfs ext4
+            FILESYSTEMS := squashfs
             KERNEL = kernel-bin | uImage none
             KERNEL_INITRAMFS := kernel-bin | uImage none
             KERNEL_NAME := zImage.la3000000
@@ -84,7 +85,7 @@ jobs:
           CONFIG_TARGET_ALL_PROFILES=n
           CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y
           CONFIG_TARGET_ROOTFS_SQUASHFS=y
-          CONFIG_TARGET_ROOTFS_EXT4FS=y
+          #CONFIG_TARGET_ROOTFS_EXT4FS is not set
           EOF
           make defconfig
 
