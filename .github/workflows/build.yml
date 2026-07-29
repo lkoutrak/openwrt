@@ -37,18 +37,10 @@ jobs:
           EOF
           make defconfig
 
-      - name: Detect Selected Device Profile
-        id: detect_device
-        run: |
-          # Εντοπισμός της συσκευής που είναι ενεργοποιημένη στο .config
-          DEVICE=$(grep -E "^CONFIG_TARGET_DEVICE_.*_DEVICE_.*=y" .config | sed -E 's/.*_DEVICE_(.*)=y/\1/')
-          echo "Detected device profile: $DEVICE"
-          echo "PROFILE=$DEVICE" >> $GITHUB_ENV
-
       - name: Build Firmware
         run: |
           make -j$(nproc) download
-          make -j$(nproc) PROFILE="$PROFILE" || make -j1 V=s PROFILE="$PROFILE"
+          make -j$(nproc) DEVICE_FILTER="watchguard_firebox-t30" || make -j1 V=s DEVICE_FILTER="watchguard_firebox-t30"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
