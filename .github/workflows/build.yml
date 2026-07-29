@@ -31,6 +31,7 @@ jobs:
           cat << 'EOF' > .config
           CONFIG_TARGET_mpc85xx=y
           CONFIG_TARGET_mpc85xx_p1010=y
+          CONFIG_TARGET_MULTI_PROFILE=n
           CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y
           CONFIG_TARGET_ROOTFS_SQUASHFS=y
           CONFIG_TARGET_ROOTFS_EXT4FS=y
