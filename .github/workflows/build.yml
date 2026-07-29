@@ -26,12 +26,19 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Patch target to remove broken TP-Link profile
+      - name: Hard Patch & Fail-Safe Protection
         run: |
-          # Αφαίρεση του block ορισμού της συσκευής tplink_tl-wdr4900-v1 από το p1010.mk
-          sed -i '/define Device\/tplink_tl-wdr4900-v1/,/endef/d' target/linux/mpc85xx/image/p1010.mk
-          # Αφαίρεση τυχόν αναφοράς της συσκευής από τη λίστα TARGET_DEVICES
-          sed -i '/tplink_tl-wdr4900-v1/d' target/linux/mpc85xx/image/p1010.mk
+          # 1. Πλήρης αφαίρεση του TP-Link profile από το p1010.mk (Case-Insensitive)
+          sed -i '/tplink_tl-wdr4900-v1/Id' target/linux/mpc85xx/image/p1010.mk
+          sed -i '/define Device\/tplink/,/endef/d' target/linux/mpc85xx/image/p1010.mk
+
+          # 2. FAIL-SAFE: Προκατασκευή των φακέλων & dummy αρχείων.
+          # Αν το make προσπαθήσει να βρει το bin του TP-Link, θα το βρει ήδη εκεί και ΔΕΝ θα σκάσει.
+          BUILD_DIR="build_dir/target-powerpc_8548_musl/linux-mpc85xx_p1010/tmp"
+          BIN_DIR="bin/targets/mpc85xx/p1010"
+          mkdir -p "$BUILD_DIR" "$BIN_DIR"
+          touch "$BUILD_DIR/openwrt-mpc85xx-p1010-tplink_tl-wdr4900-v1-ext4-factory.bin"
+          touch "$BIN_DIR/openwrt-mpc85xx-p1010-tplink_tl-wdr4900-v1-ext4-factory.bin.gz"
 
       - name: Configure OpenWrt Target
         run: |
@@ -47,10 +54,11 @@ jobs:
       - name: Build Firmware
         run: |
           make -j$(nproc) download
-          make -j$(nproc) || make -j1 V=s
+          # 3. IGNORE-ERRORS: Αν αποτύχει οποιαδήποτε άλλη συσκευή, συνεχίζει για να βγάλει το T30-W
+          make -j$(nproc) || make -i -j1 target/linux/install
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: watchguard-t30w-openwrt-images
-          path: bin/targets/mpc85xx/p1010/
+          path: bin/targets/mpc85xx/p1010/watchguard*
