@@ -48,6 +48,20 @@ jobs:
               f.writelines(new_lines)
           '
 
+      - name: Verify Patch Integrity (Inspection Step)
+        run: |
+          echo "=== ΠΕΡΙΕΧΟΜΕΝΑ TARGET FILE (p1010.mk) ==="
+          cat target/linux/mpc85xx/image/p1010.mk
+          echo "========================================="
+          
+          # Έλεγχος αν παρέμεινε το TP-Link
+          if grep -q "tplink" target/linux/mpc85xx/image/p1010.mk; then
+            echo "ERROR: Το TP-Link profile βρίσκεται ακόμα μέσα στο αρχείο!"
+            exit 1
+          else
+            echo "SUCCESS: Το TP-Link αφαιρέθηκε επιτυχώς."
+          fi
+
       - name: Configure OpenWrt Target
         run: |
           cat << 'EOF' > .config
@@ -60,10 +74,9 @@ jobs:
           EOF
           make defconfig
 
-      - name: Build Firmware (With Fallback Debugging)
+      - name: Build Firmware
         run: |
           make -j$(nproc) download
-          # Εκτέλεση παράλληλα. Αν σκάσει, εκτελείται αυτόματα με -j1 V=s για να μας δείξει την ακριβή αιτία.
           make -j$(nproc) || make -j1 V=s
 
       - name: Upload Artifacts
