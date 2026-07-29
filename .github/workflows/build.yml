@@ -26,39 +26,48 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Hard Patch & Fail-Safe Protection
+      - name: Isolate WatchGuard T30-W (Safe Python Patch)
         run: |
-          # 1. Πλήρης αφαίρεση του TP-Link profile από το p1010.mk (Case-Insensitive)
-          sed -i '/tplink_tl-wdr4900-v1/Id' target/linux/mpc85xx/image/p1010.mk
-          sed -i '/define Device\/tplink/,/endef/d' target/linux/mpc85xx/image/p1010.mk
-
-          # 2. FAIL-SAFE: Προκατασκευή των φακέλων & dummy αρχείων.
-          # Αν το make προσπαθήσει να βρει το bin του TP-Link, θα το βρει ήδη εκεί και ΔΕΝ θα σκάσει.
-          BUILD_DIR="build_dir/target-powerpc_8548_musl/linux-mpc85xx_p1010/tmp"
-          BIN_DIR="bin/targets/mpc85xx/p1010"
-          mkdir -p "$BUILD_DIR" "$BIN_DIR"
-          touch "$BUILD_DIR/openwrt-mpc85xx-p1010-tplink_tl-wdr4900-v1-ext4-factory.bin"
-          touch "$BIN_DIR/openwrt-mpc85xx-p1010-tplink_tl-wdr4900-v1-ext4-factory.bin.gz"
+          python3 -c '
+          path = "target/linux/mpc85xx/image/p1010.mk"
+          with open(path, "r") as f:
+              lines = f.readlines()
+          
+          new_lines = []
+          skip = False
+          for line in lines:
+              if "define Device/tplink" in line:
+                  skip = True
+              if skip and "endef" in line:
+                  skip = False
+                  continue
+              if not skip:
+                  new_lines.append(line)
+          
+          with open(path, "w") as f:
+              f.writelines(new_lines)
+          '
 
       - name: Configure OpenWrt Target
         run: |
           cat << 'EOF' > .config
           CONFIG_TARGET_mpc85xx=y
           CONFIG_TARGET_mpc85xx_p1010=y
+          CONFIG_TARGET_ALL_PROFILES=n
           CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y
           CONFIG_TARGET_ROOTFS_SQUASHFS=y
           CONFIG_TARGET_ROOTFS_EXT4FS=y
           EOF
           make defconfig
 
-      - name: Build Firmware
+      - name: Build Firmware (With Fallback Debugging)
         run: |
           make -j$(nproc) download
-          # 3. IGNORE-ERRORS: Αν αποτύχει οποιαδήποτε άλλη συσκευή, συνεχίζει για να βγάλει το T30-W
-          make -j$(nproc) || make -i -j1 target/linux/install
+          # Εκτέλεση παράλληλα. Αν σκάσει, εκτελείται αυτόματα με -j1 V=s για να μας δείξει την ακριβή αιτία.
+          make -j$(nproc) || make -j1 V=s
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: watchguard-t30w-openwrt-images
-          path: bin/targets/mpc85xx/p1010/watchguard*
+          path: bin/targets/mpc85xx/p1010/
