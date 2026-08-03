@@ -55,7 +55,7 @@ jobs:
             DEVICE_ALT0_MODEL := Firebox T30
             DEVICE_PACKAGES := ath10k-firmware-qca988x-ct block-mount kmod-fs-ext4 \
               kmod-ath10k-ct kmod-usb-storage kmod-usb2 \
-              kmod-rtc-s35390a kmod-tpm-i2c-atmel fdisk resize2fs partx
+              kmod-rtc-s35390a kmod-tpm-i2c-atmel fdisk resize2fs
             IMAGE_SIZE := 64m
             FILESYSTEMS := squashfs
             KERNEL = kernel-bin | uImage none
@@ -77,12 +77,13 @@ jobs:
           cat << 'EOF' > target/linux/mpc85xx/base-files/etc/uci-defaults/70-rootpt-resize
           #!/bin/sh
           if [ -b /dev/mmcblk0 ]; then
-              # Διαγραφή και επαναδημιουργία του Partition 4 στο 100% της κάρτας
-              (echo p; echo d; echo 4; echo n; echo p; echo 4; echo ; echo ; echo N; echo w) | fdisk /dev/mmcblk0
+              # Αυτόματη διαγραφή & επαναδημιουργία του Partition 4 στο 100% της κάρτας SD
+              # (Περιλαμβάνει επιβεβαίωση 'Y' σε περίπτωση που ζητηθεί αφαίρεση ext4 signature)
+              printf "d\n4\nn\np\n4\n\n\nY\nw\n" | fdisk /dev/mmcblk0
               sync
-              # Ενημέρωση του Kernel για το νέο μέγεθος
-              partx -u /dev/mmcblk0 2>/dev/null || true
-              # Επέκταση του filesystem
+              # Ενημέρωση του Kernel για το νέο μέγεθος του block device
+              blockdev --rereadpt /dev/mmcblk0 2>/dev/null || true
+              # Επέκταση του ext4 filesystem στα όρια του νέου partition
               resize2fs /dev/mmcblk0p4
           fi
           exit 0
@@ -105,14 +106,15 @@ jobs:
           CONFIG_TARGET_ROOTFS_SQUASHFS=y
           #CONFIG_TARGET_ROOTFS_EXT4FS is not set
 
-          # Εγκατάσταση Web Interface (LuCI)
+          # Προεγκατάσταση Web Interface (LuCI)
           CONFIG_PACKAGE_luci=y
+          CONFIG_PACKAGE_luci-base=y
+          CONFIG_PACKAGE_luci-app-firewall=y
 
-          # Εργαλεία Διαχείρισης Δίσκων για το Auto-Resize
+          # Εργαλεία Διαχείρισης Δίσκων
           CONFIG_PACKAGE_fdisk=y
           CONFIG_PACKAGE_resize2fs=y
           CONFIG_PACKAGE_e2fsprogs=y
-          CONFIG_PACKAGE_partx=y
           EOF
           make defconfig
 
