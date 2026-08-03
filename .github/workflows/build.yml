@@ -11,7 +11,7 @@ jobs:
       - name: Checkout OpenWrt Source
         uses: actions/checkout@v4
         with:
-          repository: dmascord/openwrt
+          repository: lkoutrak/openwrt
           ref: add-watchguard-t30-w
 
       - name: Install Build Dependencies
@@ -27,63 +27,15 @@ jobs:
           ./scripts/feeds install -p packages -a
           ./scripts/feeds install -p luci -a
 
-      - name: Isolate WatchGuard T30-W (Clean Override)
-        run: |
-          cat << 'EOF' > target/linux/mpc85xx/image/p1010.mk
-          define Build/watchguard_firebox-t30-bootfs
-          	rm -f $(KDIR)/watchguard_firebox-t30-bootfs.img
-          	TOPDIR=$(TOPDIR) sh $(TOPDIR)/scripts/make_watchguard_t30w_bootfs.sh \
-          		$(STAGING_DIR_HOST)/bin \
-          		$(IMAGE_KERNEL) \
-          		$(KDIR)/image-$(firstword $(DEVICE_DTS)).dtb \
-          		$(KDIR)/watchguard_firebox-t30-bootfs.img
-          endef
-
-          define Build/watchguard_firebox-t30-factory
-          	rm -f $@
-          	TOPDIR=$(TOPDIR) sh $(TOPDIR)/scripts/make_watchguard_t30w_sdimage.sh \
-          		$(STAGING_DIR_HOST)/bin \
-          		$(KDIR)/watchguard_firebox-t30-bootfs.img \
-          		$(IMAGE_ROOTFS) \
-          		$@
-          endef
-
-          define Device/watchguard_firebox-t30
-            DEVICE_VENDOR := Watchguard
-            DEVICE_MODEL := Firebox T30-W
-            DEVICE_ALT0_VENDOR := Watchguard
-            DEVICE_ALT0_MODEL := Firebox T30
-            DEVICE_PACKAGES := ath10k-firmware-qca988x-ct block-mount kmod-fs-ext4 \
-              kmod-ath10k-ct kmod-usb-storage kmod-usb2 \
-              kmod-rtc-s35390a kmod-tpm-i2c-atmel fdisk resize2fs
-            IMAGE_SIZE := 64m
-            FILESYSTEMS := squashfs
-            KERNEL = kernel-bin | uImage none
-            KERNEL_INITRAMFS := kernel-bin | uImage none
-            KERNEL_NAME := zImage.la3000000
-            KERNEL_ENTRY := 0x3000000
-            KERNEL_LOADADDR := 0x3000000
-            IMAGES := factory.img.gz sysupgrade.bin
-            IMAGE/factory.img.gz := watchguard_firebox-t30-bootfs | watchguard_firebox-t30-factory
-            IMAGE/sysupgrade.bin := watchguard_firebox-t30-bootfs | sysupgrade-tar \
-          	kernel=$(KDIR)/watchguard_firebox-t30-bootfs.img | append-metadata | check-size
-          endef
-          TARGET_DEVICES += watchguard_firebox-t30
-          EOF
-
       - name: Add Universal Auto-Resize Script on First Boot
         run: |
           mkdir -p target/linux/mpc85xx/base-files/etc/uci-defaults
           cat << 'EOF' > target/linux/mpc85xx/base-files/etc/uci-defaults/70-rootpt-resize
           #!/bin/sh
           if [ -b /dev/mmcblk0 ]; then
-              # Αυτόματη διαγραφή & επαναδημιουργία του Partition 4 στο 100% της κάρτας SD
-              # (Περιλαμβάνει επιβεβαίωση 'Y' σε περίπτωση που ζητηθεί αφαίρεση ext4 signature)
               printf "d\n4\nn\np\n4\n\n\nY\nw\n" | fdisk /dev/mmcblk0
               sync
-              # Ενημέρωση του Kernel για το νέο μέγεθος του block device
               blockdev --rereadpt /dev/mmcblk0 2>/dev/null || true
-              # Επέκταση του ext4 filesystem στα όρια του νέου partition
               resize2fs /dev/mmcblk0p4
           fi
           exit 0
@@ -92,9 +44,9 @@ jobs:
 
       - name: Verify Patch Integrity
         run: |
-          echo "=== ΝΕΟ ΠΕΡΙΕΧΟΜΕΝΟ p1010.mk ==="
+          echo "=== ΠΕΡΙΕΧΟΜΕΝΟ p1010.mk ΑΠΟ ΤΟ REPO ==="
           cat target/linux/mpc85xx/image/p1010.mk
-          echo "================================="
+          echo "======================================="
 
       - name: Configure OpenWrt Target
         run: |
@@ -104,7 +56,6 @@ jobs:
           CONFIG_TARGET_ALL_PROFILES=n
           CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y
           CONFIG_TARGET_ROOTFS_SQUASHFS=y
-          #CONFIG_TARGET_ROOTFS_EXT4FS is not set
 
           # Προεγκατάσταση Web Interface (LuCI)
           CONFIG_PACKAGE_luci=y
