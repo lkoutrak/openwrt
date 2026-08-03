@@ -27,12 +27,10 @@ jobs:
           ./scripts/feeds install -p packages -a
           ./scripts/feeds install -p luci -a
 
-      - name: Verify Patch Integrity & Custom Scripts
+      - name: Verify Patch Integrity
         run: |
           echo "=== ΠΕΡΙΕΧΟΜΕΝΟ p1010.mk ==="
           cat target/linux/mpc85xx/image/p1010.mk
-          echo "=== ΕΛΕΓΧΟΣ SCRIPTS ==="
-          ls -la target/linux/mpc85xx/files/etc/uci-defaults/
 
       - name: Configure OpenWrt Target
         run: |
@@ -65,4 +63,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: watchguard-t30w-openwrt-images
-          path: bin/targets/mpc85xx/p1010/*.img.gz
+          path: bin/targets/mpc85xx/p1010/
