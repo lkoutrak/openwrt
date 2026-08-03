@@ -27,26 +27,12 @@ jobs:
           ./scripts/feeds install -p packages -a
           ./scripts/feeds install -p luci -a
 
-      - name: Add Universal Auto-Resize Script on First Boot
+      - name: Verify Patch Integrity & Custom Scripts
         run: |
-          mkdir -p target/linux/mpc85xx/base-files/etc/uci-defaults
-          cat << 'EOF' > target/linux/mpc85xx/base-files/etc/uci-defaults/70-rootpt-resize
-          #!/bin/sh
-          if [ -b /dev/mmcblk0 ]; then
-              printf "d\n4\nn\np\n4\n\n\nY\nw\n" | fdisk /dev/mmcblk0
-              sync
-              blockdev --rereadpt /dev/mmcblk0 2>/dev/null || true
-              resize2fs /dev/mmcblk0p4
-          fi
-          exit 0
-          EOF
-          chmod +x target/linux/mpc85xx/base-files/etc/uci-defaults/70-rootpt-resize
-
-      - name: Verify Patch Integrity
-        run: |
-          echo "=== ΠΕΡΙΕΧΟΜΕΝΟ p1010.mk ΑΠΟ ΤΟ REPO ==="
+          echo "=== ΠΕΡΙΕΧΟΜΕΝΟ p1010.mk ==="
           cat target/linux/mpc85xx/image/p1010.mk
-          echo "======================================="
+          echo "=== ΕΛΕΓΧΟΣ SCRIPTS ==="
+          ls -la target/linux/mpc85xx/files/etc/uci-defaults/
 
       - name: Configure OpenWrt Target
         run: |
@@ -55,6 +41,7 @@ jobs:
           CONFIG_TARGET_mpc85xx_p1010=y
           CONFIG_TARGET_ALL_PROFILES=n
           CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y
+          CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30-w=y
           CONFIG_TARGET_ROOTFS_SQUASHFS=y
 
           # Προεγκατάσταση Web Interface (LuCI)
@@ -78,4 +65,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: watchguard-t30w-openwrt-images
-          path: bin/targets/mpc85xx/p1010/
+          path: bin/targets/mpc85xx/p1010/*.img.gz
