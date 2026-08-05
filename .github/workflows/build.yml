@@ -27,11 +27,6 @@ jobs:
           ./scripts/feeds install -p packages -a
           ./scripts/feeds install -p luci -a
 
-      - name: Verify Patch Integrity
-        run: |
-          echo "=== ΠΕΡΙΕΧΟΜΕΝΟ p1010.mk ==="
-          cat target/linux/mpc85xx/image/p1010.mk
-
       - name: Configure OpenWrt Target
         run: |
           cat << 'EOF' > .config
@@ -42,21 +37,26 @@ jobs:
           CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30-w=y
           CONFIG_TARGET_ROOTFS_SQUASHFS=y
 
-          # Προεγκατάσταση Web Interface (LuCI)
+          # Web Interface (LuCI)
           CONFIG_PACKAGE_luci=y
           CONFIG_PACKAGE_luci-base=y
           CONFIG_PACKAGE_luci-app-firewall=y
 
-          # Εργαλεία Διαχείρισης Δίσκων
+          # Utilities
           CONFIG_PACKAGE_fdisk=y
           CONFIG_PACKAGE_resize2fs=y
           CONFIG_PACKAGE_e2fsprogs=y
           EOF
           make defconfig
 
+      - name: Download Source Tarballs
+        run: |
+          make tools/download
+          make toolchain/download
+          make download -j$(nproc)
+
       - name: Build Firmware
         run: |
-          make -j$(nproc) download
           make -j$(nproc) || make -j1 V=s
 
       - name: Upload Artifacts
