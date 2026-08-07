@@ -33,7 +33,6 @@ jobs:
           CONFIG_TARGET_mpc85xx=y
           CONFIG_TARGET_mpc85xx_p1010=y
           CONFIG_TARGET_ALL_PROFILES=n
-          CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30=y
           CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30-w=y
           CONFIG_TARGET_ROOTFS_SQUASHFS=y
 
