@@ -6,7 +6,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-
     steps:
       - name: Checkout OpenWrt Source
         uses: actions/checkout@v4
@@ -17,44 +16,30 @@ jobs:
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential clang flex bison \
-            gawk gcc-multilib g++-multilib gettext git libncurses5-dev \
-            libssl-dev python3 python3-setuptools rsync unzip zlib1g-dev file wget cmake
+          sudo apt-get install -y build-essential clang flex bison gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev python3 python3-setuptools rsync unzip zlib1g-dev file wget cmake
 
-      - name: Update Feeds Safely
+      - name: Update Feeds
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -p packages -a
           ./scripts/feeds install -p luci -a
 
-      - name: Configure OpenWrt Target
+      - name: Configure OpenWrt
         run: |
           cat << 'EOF' > .config
           CONFIG_TARGET_mpc85xx=y
           CONFIG_TARGET_mpc85xx_p1010=y
-          CONFIG_TARGET_ALL_PROFILES=n
           CONFIG_TARGET_DEVICE_mpc85xx_p1010_DEVICE_watchguard_firebox-t30-w=y
           CONFIG_TARGET_ROOTFS_SQUASHFS=y
-
-          # Web Interface (LuCI)
           CONFIG_PACKAGE_luci=y
-          CONFIG_PACKAGE_luci-base=y
           CONFIG_PACKAGE_luci-app-firewall=y
-
-          # Utilities
           CONFIG_PACKAGE_fdisk=y
           CONFIG_PACKAGE_resize2fs=y
           CONFIG_PACKAGE_e2fsprogs=y
           EOF
           make defconfig
 
-      - name: Download Source Tarballs
-        run: |
-          make tools/download
-          make toolchain/download
-          make download -j$(nproc)
-
-      - name: Build Firmware
+      - name: Build
         run: |
           make -j$(nproc) || make -j1 V=s
 
