@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
 set -eu
 
 [ $# -eq 4 ] || { echo "Usage: $0 <host-bin-dir> <bootfs.img> <rootfs.img> <output.img.gz>"; exit 1; }
@@ -61,7 +62,8 @@ p4_size="$8"
 truncate -s $((p4_offset + p4_size)) "$output_raw"
 
 # Write p1 placeholder
-dd if="$workdir/p1.img" of="$output_raw" bs=512 seek=$((p1_offset / 512)) conv=notrunc status=none
+dd if="$workdir/p1.img" of="$output_raw" bs=512 \
+	seek=$((p1_offset / 512)) conv=notrunc status=none
 
 # Write p2 squashfs (check it fits within p2 partition first)
 rootfs_size="$(wc -c < "$rootfs_img")"
@@ -69,7 +71,8 @@ if [ "$rootfs_size" -gt "$p2_size" ]; then
 	echo "ERROR: rootfs image ($rootfs_size bytes) exceeds p2 partition ($p2_size bytes)" >&2
 	exit 1
 fi
-dd if="$rootfs_img" of="$output_raw" bs=512 seek=$((p2_offset / 512)) conv=notrunc status=none
+dd if="$rootfs_img" of="$output_raw" bs=512 \
+	seek=$((p2_offset / 512)) conv=notrunc status=none
 
 # Write p3 boot partition directly from the bootfs image (already correctly-sized ext2)
 bootfs_size="$(wc -c < "$bootfs_img")"
@@ -77,14 +80,16 @@ if [ "$bootfs_size" -gt "$p3_size" ]; then
 	echo "ERROR: bootfs image ($bootfs_size bytes) exceeds p3 partition ($p3_size bytes)" >&2
 	exit 1
 fi
-dd if="$bootfs_img" of="$output_raw" bs=512 seek=$((p3_offset / 512)) conv=notrunc count=$((p3_size / 512)) status=none
+dd if="$bootfs_img" of="$output_raw" bs=512 \
+	seek=$((p3_offset / 512)) conv=notrunc count=$((p3_size / 512)) status=none
 
 # Create p4 rootfs_data (100MB initially, expandable within the 2GB partition)
 # Filesystem label 'rootfs_data' lets fstools locate the overlay without
 # requiring GPT PARTNAME support in the bootloader.
 p4_fs_size_mb=100
 "$hostbin/mkfs.ext4" -q -F -L rootfs_data "$workdir/p4.img" $((p4_fs_size_mb * 1024))
-dd if="$workdir/p4.img" of="$output_raw" bs=512 seek=$((p4_offset / 512)) conv=notrunc status=none
+dd if="$workdir/p4.img" of="$output_raw" bs=512 \
+	seek=$((p4_offset / 512)) conv=notrunc status=none
 
 gzip -c "$output_raw" > "$output_gz"
 sha256sum "$output_gz" > "$output_gz.sha256"
