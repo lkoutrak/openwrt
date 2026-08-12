@@ -133,8 +133,8 @@ define Device/watchguard_firebox-t30
   DEVICE_ALT0_MODEL := Firebox T30
   DEVICE_PACKAGES := ath10k-firmware-qca988x-ct block-mount kmod-fs-ext4 \
     e2fsprogs kmod-ath10k-ct kmod-usb-storage kmod-usb2 \
-    kmod-rtc-s35390a kmod-tpm-i2c-atmel
-  IMAGE_SIZE := 64m
+    kmod-rtc-s35390a kmod-tpm-i2c-atmel fdisk resize2fs luci
+  IMAGE_SIZE := 128m
   FILESYSTEMS := squashfs
   KERNEL = kernel-bin | uImage none
   KERNEL_INITRAMFS := kernel-bin | uImage none
