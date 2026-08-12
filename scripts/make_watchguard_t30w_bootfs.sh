@@ -1,5 +1,5 @@
-# SPDX-License-Identifier: GPL-2.0-only
 #!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
 set -eu
 
 usage() {
@@ -45,4 +45,6 @@ used_kib=$(du -sk "$workdir/boot" | cut -f1)
 blocks=$((used_kib + 8192))
 [ "$blocks" -ge 32768 ] || blocks=32768
 blocks=$((((blocks + 1023) / 1024) * 1024))
+
+# Added -I 128 -O ^64bit for U-Boot 2010 compatibility
 "$hostbin/mkfs.ext2" -q -F -I 128 -O ^64bit -d "$workdir/boot" "$output_img" "$blocks"
