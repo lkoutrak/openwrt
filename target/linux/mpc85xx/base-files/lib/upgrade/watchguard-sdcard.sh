@@ -86,7 +86,8 @@ watchguard_do_upgrade() {
 
 	# Write new kernel to boot partition (p3)
 	# U-Boot loads kernel from this ext2 partition
-	tar xf "$tar_file" "$board_dir/kernel" -O | dd of="$bootfs" bs=512k conv=fsync || return 1
+	tar xf "$tar_file" "$board_dir/kernel" -O | \
+		dd of="$bootfs" bs=512k conv=fsync || return 1
 
 	# Write new squashfs root (p2) — check it fits in the partition first
 	local rootfs_part_sectors rootfs_part_bytes root_size
@@ -99,7 +100,8 @@ watchguard_do_upgrade() {
 		return 1
 	fi
 	# This replaces the base OS while preserving p4 overlay
-	tar xf "$tar_file" "$board_dir/root" -O | dd of="$rootfs" bs=512k conv=fsync || return 1
+	tar xf "$tar_file" "$board_dir/root" -O | \
+		dd of="$rootfs" bs=512k conv=fsync || return 1
 	# p4 (rootfs_data) is NOT touched - user config is preserved
 
 	# Handle config backup to boot partition
