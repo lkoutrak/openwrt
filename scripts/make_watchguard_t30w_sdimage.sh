@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
 set -eu
 
 [ $# -eq 4 ] || { echo "Usage: $0 <host-bin-dir> <bootfs.img> <rootfs.img> <output.img.gz>"; exit 1; }
@@ -8,6 +9,7 @@ bootfs_img="$2"
 rootfs_img="$3"
 output_gz="$4"
 
+# Use mktemp for safe temp directory (avoids racy /tmp/$$)
 workdir="$(mktemp -d)"
 output_raw="$workdir/t30w-openwrt.img"
 
@@ -17,16 +19,10 @@ trap cleanup EXIT INT TERM
 mkdir -p "$workdir"
 
 # SD card layout:
-# p1: 1MB placeholder (reserved for future use)
+# p1: 1MB placeholder (per upstream review)
 # p2: 128MB squashfs root - kernel mounts as root=/dev/mmcblk0p2
 # p3: 32MB boot - U-Boot loads kernel from mmc 0:3 (REQUIRED)
 # p4: rest of card - ext4 rootfs_data overlay (expandable)
-#
-# MBR is used (not GPT) because the WatchGuard T30-W U-Boot rejects
-# GPT images. The fstools overlay driver falls back to filesystem
-# labels when GPT PARTNAME is unavailable, so we label p4 as
-# 'rootfs_data' and provide a board-specific preinit hook
-# (79_mount_t30_overlay) that mounts /dev/mmcblk0p4 directly by label.
 
 p1_size_mb=1
 p2_size_mb=128
@@ -36,12 +32,7 @@ p4_size_mb=2048
 # Create p1 placeholder (1024 x 1KiB blocks = 1MB)
 "$hostbin/mkfs.ext4" -q -F "$workdir/p1.img" 1024
 
-# Create MBR with 4 primary partitions using host ptgen (the partition
-# table builder OpenWrt's image build system already uses for ubifs/jffs2).
-# `-h 16 -s 63 -l 1024` sets heads/sectors/cylinders to the historic
-# CHS values the T30-W's u-boot expects. `-t 83` is Linux native.
-# `ptgen` prints the resulting offsets/sizes on stdout separated by
-# whitespace; we capture them with positional parameters.
+# Create MBR with 4 primary partitions using host ptgen
 set -- $("$hostbin/ptgen" -o "$output_raw" -h 16 -s 63 -l 1024 \
 	-t 83 -p "${p1_size_mb}M" \
 	-t 83 -p "${p2_size_mb}M" \
@@ -71,17 +62,16 @@ if [ "$rootfs_size" -gt "$p2_size" ]; then
 fi
 dd if="$rootfs_img" of="$output_raw" bs=512 seek=$((p2_offset / 512)) conv=notrunc status=none
 
-# Write p3 boot partition directly from the bootfs image (already correctly-sized ext2)
+# Write p3 boot partition directly from the bootfs image
 bootfs_size="$(wc -c < "$bootfs_img")"
 if [ "$bootfs_size" -gt "$p3_size" ]; then
 	echo "ERROR: bootfs image ($bootfs_size bytes) exceeds p3 partition ($p3_size bytes)" >&2
 	exit 1
 fi
-dd if="$bootfs_img" of="$output_raw" bs=512 seek=$((p3_offset / 512)) conv=notrunc count=$((p3_size / 512)) status=none
+dd if="$bootfs_img" of="$output_raw" bs=512 seek=$((p3_offset / 512)) \
+    conv=notrunc count=$((p3_size / 512)) status=none
 
 # Create p4 rootfs_data (100MB initially, expandable within the 2GB partition)
-# Filesystem label 'rootfs_data' lets fstools locate the overlay without
-# requiring GPT PARTNAME support in the bootloader.
 p4_fs_size_mb=100
 "$hostbin/mkfs.ext4" -q -F -L rootfs_data "$workdir/p4.img" $((p4_fs_size_mb * 1024))
 dd if="$workdir/p4.img" of="$output_raw" bs=512 seek=$((p4_offset / 512)) conv=notrunc status=none
