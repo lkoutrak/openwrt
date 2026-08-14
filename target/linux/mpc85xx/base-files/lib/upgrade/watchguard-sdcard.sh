@@ -3,7 +3,7 @@
 # WatchGuard T30-W SD card upgrade script
 #
 # SD Card Layout:
-#   p1: 1MB placeholder (reserved)
+#   p1: 2MB placeholder (reserved)
 #   p2: squashfs root (kernel boots with root=/dev/mmcblk0p2)
 #   p3: ext2 boot partition (U-Boot loads kernel from here)
 #   p4: ext4 rootfs_data (overlay/config - NEVER touch during upgrade)
@@ -90,13 +90,15 @@ watchguard_do_upgrade() {
 
 	# Write new squashfs root (p2) — check it fits in the partition first
 	local rootfs_part_sectors rootfs_part_bytes root_size
-	rootfs_part_sectors="$(cat /sys/class/block/$(basename "$rootfs")/size 2>/dev/null || echo 0)"
+	rootfs_part_sectors="$(cat /sys/class/block/$(basename \
+	    "$rootfs")/size 2>/dev/null || echo 0)"
 	rootfs_part_bytes=$((rootfs_part_sectors * 512))
-	root_size="$(tar tvf "$tar_file" "$board_dir/root" 2>/dev/null | awk '{print $3}' | head -1)"
-	root_size="${root_size:-0}"
+root_size="$(tar tvf "$tar_file" "$board_dir/root" 2>/dev/null \
+	    | awk '{print $3}' | head -1)"
 	if [ "$rootfs_part_bytes" -gt 0 ] && [ "$root_size" -gt "$rootfs_part_bytes" ]; then
-		echo "watchguard-sdcard: new root ($root_size bytes) exceeds partition $rootfs ($rootfs_part_bytes bytes)" >&2
-		return 1
+		echo "watchguard-sdcard: new root ($root_size bytes) exceeds partition" \
+		    "$rootfs ($rootfs_part_bytes bytes)" >&2
+
 	fi
 	# This replaces the base OS while preserving p4 overlay
 	tar xf "$tar_file" "$board_dir/root" -O | dd of="$rootfs" bs=512k conv=fsync || return 1

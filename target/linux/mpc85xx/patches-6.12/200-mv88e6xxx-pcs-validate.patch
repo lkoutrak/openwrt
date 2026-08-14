@@ -1,7 +1,7 @@
 --- a/drivers/net/dsa/mv88e6xxx/pcs-6185.c
 +++ b/drivers/net/dsa/mv88e6xxx/pcs-6185.c
-@@ -101,6 +101,18 @@ static int mv88e6185_pcs_config(struct phylink_pcs *pcs, unsigned int neg_mode,
- 	return 0;
+@@ -106,10 +106,23 @@ static void mv88e6185_pcs_an_restart(struct phylink_pcs *pcs)
+ {
  }
  
 +static int mv88e6185_pcs_validate(struct phylink_pcs *pcs,
@@ -16,10 +16,6 @@
 +	return -EOPNOTSUPP;
 +}
 +
- static void mv88e6185_pcs_an_restart(struct phylink_pcs *pcs)
- {
- }
-@@ -110,6 +122,7 @@ static void mv88e6185_pcs_an_restart(struct phylink_pcs *pcs)
  static const struct phylink_pcs_ops mv88e6185_phylink_pcs_ops = {
  	.pcs_get_state = mv88e6185_pcs_get_state,
  	.pcs_config = mv88e6185_pcs_config,
